@@ -7,6 +7,7 @@ import yaml
 import shioaji as sj
 import sqlite3
 import threading
+import queue
 
 STOP = False
 
@@ -164,43 +165,81 @@ def main():
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     out_path = out_dir / f"raw_events_{stamp}.jsonl"
 
-    # --- DB (truth source) ---
+    # --- DB writer (single-thread; callbacks must not block on DB) ---
     # Use TMF_DB_PATH if provided, else default runtime/data/tmf_autotrader_v1.sqlite3
     db_path = Path(os.environ.get("TMF_DB_PATH", str(repo / "runtime" / "data" / "tmf_autotrader_v1.sqlite3")))
     from src.data.store_sqlite_v1 import init_db as _init_db
     _init_db(db_path)
 
-    # Shioaji callbacks may run in non-main threads; allow cross-thread access and serialize writes.
-    con = sqlite3.connect(str(db_path), check_same_thread=False)
-    con.execute("PRAGMA journal_mode=WAL;")
-    con.execute("PRAGMA synchronous=NORMAL;")
-    con.execute("PRAGMA foreign_keys=ON;")
-    cur = con.cursor()
+    db_q_max = int(os.getenv("TMF_DB_QUEUE_MAX", "50000") or "50000")
+    db_commit_every = int(os.getenv("TMF_DB_COMMIT_EVERY", "500") or "500")
+    db_commit_seconds = float(os.getenv("TMF_DB_COMMIT_SECONDS", "1.0") or "1.0")
 
-    lock = threading.Lock()
+    # queue items: (ts, kind, payload_dict, source_file, ingest_ts)
+    db_q: "queue.Queue" = queue.Queue(maxsize=db_q_max)
+    db_stats = {"enq": 0, "drop": 0, "insert": 0, "commit": 0}
+    db_stop = threading.Event()
+
     ingest_ts = datetime.now().isoformat(timespec="seconds")
     # We treat the JSONL file as the 'source_file' for traceability/audit.
     source_file = str(out_path.resolve())
 
-    pending = 0
-    last_commit = time.time()
+    def _db_worker():
+        con = sqlite3.connect(str(db_path))
+        con.execute("PRAGMA journal_mode=WAL;")
+        con.execute("PRAGMA synchronous=NORMAL;")
+        con.execute("PRAGMA foreign_keys=ON;")
+        cur = con.cursor()
 
-    def _db_insert(ts: str, kind: str, payload: dict):
-        nonlocal pending, last_commit
-        with lock:
-            cur.execute(
-                "INSERT INTO events(ts, kind, payload_json, source_file, ingest_ts) VALUES(?,?,?,?,?)",
-                (str(ts), str(kind), json.dumps(payload, ensure_ascii=False, default=_json_default), source_file, ingest_ts),
-            )
-            pending += 1
+        pending = 0
+        last_commit = time.time()
+
+        while True:
+            try:
+                item = db_q.get(timeout=0.5)
+            except Exception:
+                item = None
+
+            if item is None:
+                if db_stop.is_set():
+                    break
+                continue
+
+            ts, kind, payload, src, ing_ts = item
+            try:
+                cur.execute(
+                    "INSERT INTO events(ts, kind, payload_json, source_file, ingest_ts) VALUES(?,?,?,?,?)",
+                    (str(ts), str(kind), json.dumps(payload, ensure_ascii=False, default=_json_default), str(src), str(ing_ts)),
+                )
+                db_stats["insert"] += 1
+                pending += 1
+            except Exception as e:
+                print(f"[WARN] db_insert failed: {e}", file=sys.stderr)
+
             now = time.time()
-            # amortize commit cost (batch commit improves throughput)
-            if pending >= 200 or (now - last_commit) >= 1.0:
-                con.commit()
+            if pending >= db_commit_every or (now - last_commit) >= db_commit_seconds:
+                try:
+                    con.commit()
+                    db_stats["commit"] += 1
+                except Exception as e:
+                    print(f"[WARN] db_commit failed: {e}", file=sys.stderr)
                 pending = 0
                 last_commit = now
 
-    # create file immediately + session_start record
+        # final flush
+        try:
+            con.commit()
+        except Exception:
+            pass
+        try:
+            con.close()
+        except Exception:
+            pass
+
+    t_db = threading.Thread(target=_db_worker, name="tmf_db_writer", daemon=True)
+    t_db.start()
+
+# create file immediately + session_start record
     write_jsonl(out_path, {
         "ts": datetime.now().isoformat(timespec="milliseconds"),
         "kind": "session_start",
@@ -232,10 +271,13 @@ def main():
         }
         write_jsonl(out_path, rec)
         try:
-            _db_insert(rec["ts"], kind, payload)
-        except Exception as e:
-            print(f"[WARN] db_insert failed: {e}", file=sys.stderr)
-
+            db_q.put_nowait((rec["ts"], kind, payload, source_file, ingest_ts))
+            db_stats["enq"] += 1
+        except Exception:
+            db_stats["drop"] += 1
+            # avoid log spam; print occasionally
+            if db_stats["drop"] % 1000 == 1:
+                print("[WARN] db queue full; dropping events", file=sys.stderr)
     # handlers
     @api.on_tick_fop_v1()
     def on_tick_fop(exchange, tick):
@@ -298,19 +340,21 @@ def main():
     except Exception:
         pass
     write_event("session_stop", {"reason": "signal" if STOP else "max_seconds"})
-
-    # best-effort flush/close DB
+    # stop db worker (after session_stop is queued)
     try:
-        with lock:
-            con.commit()
-    except Exception:
-        pass
-    try:
-        con.close()
+        db_stop.set()
+        try:
+            db_q.put_nowait(None)
+        except Exception:
+            pass
+        try:
+            t_db.join(timeout=5.0)
+        except Exception:
+            pass
+        print(f"[INFO] db_stats={db_stats}")
     except Exception:
         pass
     print("[OK] stopped")
-
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, _sig)
     signal.signal(signal.SIGTERM, _sig)
