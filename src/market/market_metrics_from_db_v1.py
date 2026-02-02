@@ -44,24 +44,28 @@ def _pick_latest_event_by_code(
     code: str,
     scan_limit: int = 500,
     reject_synthetic: bool = True,
-) -> Optional[Tuple[int, str, Dict[str, Any]]]:
+) -> Optional[Tuple[int, str, Dict[str, Any], str, str]]:
     """
     events payload_json is stored as TEXT; we conservatively scan the last N rows for this kind
     and match payload['code'] == code.
-    Returns: (event_id, ts, payload_dict) or None
+    Returns: (event_id, ts, payload_dict, source_file, ingest_ts) or None
     """
     rows = con.execute(
-        "SELECT id, ts, payload_json FROM events WHERE kind=? ORDER BY id DESC LIMIT ?",
+        "SELECT id, ts, payload_json, source_file, ingest_ts FROM events WHERE kind=? ORDER BY id DESC LIMIT ?",
         (kind, int(scan_limit)),
     ).fetchall()
     for r in rows:
         eid = int(r[0])
         ts = str(r[1])
         payload = _loads(r[2])
+        src_file = str(r[3]) if len(r) >= 4 and r[3] is not None else ''
+        ing_ts   = str(r[4]) if len(r) >= 5 and r[4] is not None else ''
+        src_file = str(r[3]) if len(r) > 3 else ""
+        ingest_ts = str(r[4]) if len(r) > 4 else ""
         if str(payload.get("code", "")) == str(code):
             if reject_synthetic and bool(payload.get("synthetic")):
                 continue
-            return (eid, ts, payload)
+            return (eid, ts, payload, src_file, ing_ts)
     return None
 
 
@@ -146,7 +150,7 @@ def get_market_metrics_from_db(
         if not ev:
             return {}
 
-        event_id, ts, payload = ev
+        event_id, ts, payload, db_source_file, db_ingest_ts = ev
         bid_prices = payload.get("bid_price") or []
         ask_prices = payload.get("ask_price") or []
 
@@ -175,6 +179,8 @@ def get_market_metrics_from_db(
             source={
                 "bidask_event_id": int(event_id),
                 "bidask_ts": ts,
+                "source_file": db_source_file,
+                "ingest_ts": db_ingest_ts,
                 "fop_code": str(fop_code),
                 "atr_symbol": bars_sym,
                 "atr_n": int(atr_n),
