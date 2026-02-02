@@ -47,7 +47,17 @@ def main():
 
     oms = PaperOMS(db)
     risk = RiskEngineV1(db_path=str(db), cfg=RiskConfigV1(strict_require_market_metrics=1))
-    safety = SystemSafetyEngineV1(db_path=str(db), cfg=SafetyConfigV1(fop_code="TMFB6", max_bidask_age_seconds=6*60*60))
+    # Safety: strict by default. For offline/after-hours smoke, you may set TMF_DEV_ALLOW_STALE_BIDASK=1
+    # to bypass feed-staleness guard (does NOT relax other safety checks).
+    allow_stale = (os.environ.get("TMF_DEV_ALLOW_STALE_BIDASK", "0").strip() == "1")
+    safety_cfg = SafetyConfigV1(
+        fop_code="TMFB6",
+        max_bidask_age_seconds=6*60*60,
+        require_recent_bidask=(0 if allow_stale else 1),
+    )
+    if allow_stale:
+        print("[WARN] TMF_DEV_ALLOW_STALE_BIDASK=1 -> safety.require_recent_bidask=0 (offline smoke mode)")
+    safety = SystemSafetyEngineV1(db_path=str(db), cfg=safety_cfg)
     wrap = PaperOMSRiskSafetyWrapperV1(paper_oms=oms, risk=risk, safety=safety, db_path=str(db))
 
     # ---- Market snapshot from DB (truthy only; do NOT fabricate market_metrics) ----

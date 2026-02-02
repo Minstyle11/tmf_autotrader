@@ -86,7 +86,7 @@ class SystemSafetyEngineV1:
         con.row_factory = sqlite3.Row
         return con
 
-    def _latest_event_by_code(self, con: sqlite3.Connection, *, kind: str, code: str, scan_limit: int = 2000) -> Optional[Tuple[int, str, Dict[str, Any]]]:
+    def _latest_event_by_code(self, con: sqlite3.Connection, *, kind: str, code: str, scan_limit: int = 2000, reject_synthetic: bool = True) -> Optional[Tuple[int, str, Dict[str, Any]]]:
         rows = con.execute(
             "SELECT id, ts, payload_json FROM events WHERE kind=? ORDER BY ts DESC, id DESC LIMIT ?",
             (str(kind), int(scan_limit)),
@@ -94,6 +94,8 @@ class SystemSafetyEngineV1:
         for r in rows:
             payload = _loads(r["payload_json"])
             if str(payload.get("code", "")) == str(code):
+                if reject_synthetic and bool(payload.get("synthetic")):
+                    continue
                 return (int(r["id"]), str(r["ts"]), payload)
         return None
 
@@ -145,7 +147,7 @@ class SystemSafetyEngineV1:
             if cfg.require_recent_bidask == 1:
                 con = self._con()
                 try:
-                    ev = self._latest_event_by_code(con, kind=cfg.bidask_kind, code=cfg.fop_code)
+                    ev = self._latest_event_by_code(con, kind=cfg.bidask_kind, code=cfg.fop_code, reject_synthetic=True)
                 finally:
                     con.close()
     

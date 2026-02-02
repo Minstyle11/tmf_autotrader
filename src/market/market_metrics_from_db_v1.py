@@ -43,6 +43,7 @@ def _pick_latest_event_by_code(
     kind: str,
     code: str,
     scan_limit: int = 500,
+    reject_synthetic: bool = True,
 ) -> Optional[Tuple[int, str, Dict[str, Any]]]:
     """
     events payload_json is stored as TEXT; we conservatively scan the last N rows for this kind
@@ -58,6 +59,8 @@ def _pick_latest_event_by_code(
         ts = str(r[1])
         payload = _loads(r[2])
         if str(payload.get("code", "")) == str(code):
+            if reject_synthetic and bool(payload.get("synthetic")):
+                continue
             return (eid, ts, payload)
     return None
 
@@ -139,7 +142,7 @@ def get_market_metrics_from_db(
     """
     con = sqlite3.connect(db_path)
     try:
-        ev = _pick_latest_event_by_code(con, kind="bidask_fop_v1", code=fop_code)
+        ev = _pick_latest_event_by_code(con, kind="bidask_fop_v1", code=fop_code, reject_synthetic=True)
         if not ev:
             return {}
 

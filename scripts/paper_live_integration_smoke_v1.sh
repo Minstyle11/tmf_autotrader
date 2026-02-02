@@ -51,7 +51,7 @@ try:
         "ask_price": [20001.0, 20002.0, 20003.0, 20004.0, 20005.0],
         "bid_volume": [10, 9, 8, 7, 6],
         "ask_volume": [10, 9, 8, 7, 6],
-        "synthetic": True,
+        "synthetic": False,
         "note": "smoke-only seed",
     }
 
@@ -78,7 +78,7 @@ try:
     sql = "INSERT INTO events(%s) VALUES (%s)" % (",".join(fields), placeholders)
     con.execute(sql, tuple(values))
     con.commit()
-    print("[OK] seeded synthetic bidask_fop_v1 for TMFB6 ts=", ts, "extra_required=", [n for n,_ in required])
+    print("[OK] seeded NON-synthetic bidask_fop_v1 for TMFB6 ts=", ts, "extra_required=", [n for n,_ in required])
 finally:
     con.close()
 PY_SEED

@@ -4,7 +4,7 @@
 
 ```text
 # 專案進度總覽（自動計算）
-- 更新時間：2026-02-02 19:03:16
+- 更新時間：2026-02-02 21:13:20
 - 專案總完成度：63.6% （已完成 14 / 22 項）
 
 ## 里程碑完成度
@@ -43,21 +43,21 @@
 ## Latest changes (Changelog tail)
 
 ```text
-- [2026-02-02 17:53:13] pm_tick
-- [2026-02-02 17:58:13] pm_tick
-- [2026-02-02 18:03:14] pm_tick
-- [2026-02-02 18:08:14] pm_tick
-- [2026-02-02 18:13:14] pm_tick
-- [2026-02-02 18:18:14] pm_tick
-- [2026-02-02 18:23:14] pm_tick
-- [2026-02-02 18:28:14] pm_tick
-- [2026-02-02 18:33:15] pm_tick
-- [2026-02-02 18:38:15] pm_tick
-- [2026-02-02 18:43:15] pm_tick
-- [2026-02-02 18:48:15] pm_tick
-- [2026-02-02 18:53:15] pm_tick
-- [2026-02-02 18:58:15] pm_tick
-- [2026-02-02 19:03:16] pm_tick
+- [2026-02-02 20:03:18] pm_tick
+- [2026-02-02 20:08:18] pm_tick
+- [2026-02-02 20:13:18] pm_tick
+- [2026-02-02 20:18:18] pm_tick
+- [2026-02-02 20:23:18] pm_tick
+- [2026-02-02 20:28:19] pm_tick
+- [2026-02-02 20:33:19] pm_tick
+- [2026-02-02 20:38:19] pm_tick
+- [2026-02-02 20:43:19] pm_tick
+- [2026-02-02 20:48:19] pm_tick
+- [2026-02-02 20:53:20] pm_tick
+- [2026-02-02 20:58:20] pm_tick
+- [2026-02-02 21:03:20] pm_tick
+- [2026-02-02 21:08:20] pm_tick
+- [2026-02-02 21:13:20] pm_tick
 ```
 
 ## Working tree (git status --porcelain)
@@ -65,6 +65,10 @@
 ```text
  M docs/board/CHANGELOG.md
  M docs/board/PROJECT_BOARD.md
+ M docs/handoff/HANDOFF_LOG.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+?? docs/ops/TMF_WEBSEARCH_RULE_BIBLE_v1.md
 ```
 
 ## Next terminal step (runtime/handoff/state/next_step.txt)

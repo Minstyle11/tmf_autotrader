@@ -1,5 +1,5 @@
 # 專案進度總覽（自動計算）
-- 更新時間：2026-02-02 20:33:19
+- 更新時間：2026-02-02 22:26:46
 - 專案總完成度：63.6% （已完成 14 / 22 項）
 
 ## 里程碑完成度
@@ -64,3 +64,5 @@
 - [x] execution/reject_policy.yaml (JSON-compatible YAML; no external deps)
 - [x] scripts/m3_regression_reject_policy_v1.sh (regression)
 - [ ] Wire decision into PaperOMSRiskSafetyWrapperV1 / live runner (next)
+
+> 2026-02-02 22:27:20 OFFICIAL: M2 gates closure verified (risk+market-quality+integration smoke PASS); synthetic bidask filtered; offline smoke flag added.

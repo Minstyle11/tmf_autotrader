@@ -746,3 +746,38 @@
 - [2026-02-02 20:23:18] pm_tick
 - [2026-02-02 20:28:19] pm_tick
 - [2026-02-02 20:33:19] pm_tick
+- [2026-02-02 20:38:19] pm_tick
+- [2026-02-02 20:43:19] pm_tick
+- [2026-02-02 20:48:19] pm_tick
+- [2026-02-02 20:53:20] pm_tick
+- [2026-02-02 20:58:20] pm_tick
+- [2026-02-02 21:03:20] pm_tick
+- [2026-02-02 21:08:20] pm_tick
+- [2026-02-02 21:13:20] pm_tick
+- [2026-02-02 21:18:20] pm_tick
+- [2026-02-02 21:23:21] pm_tick
+- [2026-02-02 21:28:21] pm_tick
+- [2026-02-02 21:33:21] pm_tick
+- [2026-02-02 21:38:21] pm_tick
+- [2026-02-02 21:43:21] pm_tick
+- [2026-02-02 21:48:21] pm_tick
+- [2026-02-02 21:53:22] pm_tick
+- [2026-02-02 21:58:22] pm_tick
+- [2026-02-02 22:03:22] pm_tick
+- [2026-02-02 22:16:45] pm_tick
+- [2026-02-02 22:21:46] pm_tick
+- [2026-02-02 22:26:46] pm_tick
+
+## 2026-02-02 22:27:20 (OFFICIAL) — M2 gates closure + smoke hardening
+
+### Fixed
+- Safety staleness selection now ignores synthetic bidask events (prevents smoke-only seed poisoning).
+- Integration smoke now seeds NON-synthetic bidask so safety truth-source can pass.
+
+### Added
+- TMF_DEV_ALLOW_STALE_BIDASK=1 (offline smoke) to bypass only feed-staleness guard in paper-live runner; default remains strict.
+
+### Verified
+- M2 risk gates regression PASS
+- M2 market-quality gates regression PASS
+- paper-live integration smoke PASS

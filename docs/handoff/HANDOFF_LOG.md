@@ -115179,3 +115179,202 @@ cd "$HOME/tmf_autotrader"
 python3 - <<'PY2'
 ```
 
+
+## [2026-02-02 21:03:03] ops_audit_hardgate_v1_20260202_210302
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-02 20:58:20
+- 專案總完成度：63.6% （已完成 14 / 22 項）
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [~] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+## Milestones
+### M0 Foundations
+- [x] Create repo skeleton + board + bible system + backup framework
+- [x] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
+- [x] Data store: schema v1 (events, bars, trades, orders, fills) + rotation
+- [x] Ops: runbook v1 + healthcheck v1 + auto-restart v1
+### M1 Sim + Cost Model
+- [x] TAIFEX fee/tax model v1 (exchange fees + futures transaction tax + broker fee configurable)
+- [x] Paper OMS + matching engine v1 (market/limit, partial fill if possible)
+- [x] Slippage model v1 (conservative)
+
+### M2 Risk Engine v1 (Risk First)
+- [x] Pre-trade gates (DONE: stop-required + per-trade max loss + daily max loss + consecutive-loss cooldown + market-quality gates (spread/ATR/liquidity) + regressions; TODO: wire real market_metrics source + decide strict_require_market_metrics for paper-live)
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-02 19:48:17] pm_tick
+- [2026-02-02 19:53:17] pm_tick
+- [2026-02-02 19:58:18] pm_tick
+- [2026-02-02 20:03:18] pm_tick
+- [2026-02-02 20:08:18] pm_tick
+- [2026-02-02 20:13:18] pm_tick
+- [2026-02-02 20:18:18] pm_tick
+- [2026-02-02 20:23:18] pm_tick
+- [2026-02-02 20:28:19] pm_tick
+- [2026-02-02 20:33:19] pm_tick
+- [2026-02-02 20:38:19] pm_tick
+- [2026-02-02 20:43:19] pm_tick
+- [2026-02-02 20:48:19] pm_tick
+- [2026-02-02 20:53:20] pm_tick
+- [2026-02-02 20:58:20] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+ M docs/board/CHANGELOG.md
+ M docs/board/PROJECT_BOARD.md
+?? docs/ops/TMF_WEBSEARCH_RULE_BIBLE_v1.md
+?? m3_mainline_runner_v1.sh
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M2 Pre-trade gates -> productionize):
+# Goal:
+#  1) Add a real MarketMetrics source (bid/ask/spread/ATR/liquidity) for paper-live (not manual meta).
+#  2) Optionally flip strict_require_market_metrics=1 in paper-live runner only (keep demos unchanged).
+#  3) Prove with: m2_regression_risk_gates_v1.sh + m2_regression_market_quality_gates_v1.sh + paper_live_integration_smoke_v1.sh
+
+# Step 1: inspect where paper-live currently builds meta, and where we can inject market_metrics safely
+python3 - <<'PY2'
+```
+
+
+## [2026-02-02 21:13:49] ops_audit_hardgate_v1_20260202_211348
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-02 21:13:20
+- 專案總完成度：63.6% （已完成 14 / 22 項）
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [~] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+## Milestones
+### M0 Foundations
+- [x] Create repo skeleton + board + bible system + backup framework
+- [x] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
+- [x] Data store: schema v1 (events, bars, trades, orders, fills) + rotation
+- [x] Ops: runbook v1 + healthcheck v1 + auto-restart v1
+### M1 Sim + Cost Model
+- [x] TAIFEX fee/tax model v1 (exchange fees + futures transaction tax + broker fee configurable)
+- [x] Paper OMS + matching engine v1 (market/limit, partial fill if possible)
+- [x] Slippage model v1 (conservative)
+
+### M2 Risk Engine v1 (Risk First)
+- [x] Pre-trade gates (DONE: stop-required + per-trade max loss + daily max loss + consecutive-loss cooldown + market-quality gates (spread/ATR/liquidity) + regressions; TODO: wire real market_metrics source + decide strict_require_market_metrics for paper-live)
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-02 20:03:18] pm_tick
+- [2026-02-02 20:08:18] pm_tick
+- [2026-02-02 20:13:18] pm_tick
+- [2026-02-02 20:18:18] pm_tick
+- [2026-02-02 20:23:18] pm_tick
+- [2026-02-02 20:28:19] pm_tick
+- [2026-02-02 20:33:19] pm_tick
+- [2026-02-02 20:38:19] pm_tick
+- [2026-02-02 20:43:19] pm_tick
+- [2026-02-02 20:48:19] pm_tick
+- [2026-02-02 20:53:20] pm_tick
+- [2026-02-02 20:58:20] pm_tick
+- [2026-02-02 21:03:20] pm_tick
+- [2026-02-02 21:08:20] pm_tick
+- [2026-02-02 21:13:20] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+ M docs/board/CHANGELOG.md
+ M docs/board/PROJECT_BOARD.md
+ M docs/handoff/HANDOFF_LOG.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+?? docs/ops/TMF_WEBSEARCH_RULE_BIBLE_v1.md
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M2 Pre-trade gates -> productionize):
+# Goal:
+#  1) Add a real MarketMetrics source (bid/ask/spread/ATR/liquidity) for paper-live (not manual meta).
+#  2) Optionally flip strict_require_market_metrics=1 in paper-live runner only (keep demos unchanged).
+#  3) Prove with: m2_regression_risk_gates_v1.sh + m2_regression_market_quality_gates_v1.sh + paper_live_integration_smoke_v1.sh
+
+# Step 1: inspect where paper-live currently builds meta, and where we can inject market_metrics safely
+python3 - <<'PY2'
+```
+
+
+## 2026-02-02 22:27:20 — M2 gates plumbing closure + smoke fixes (OFFICIAL)
+
+### What changed (key fixes)
+- market_metrics_from_db_v1: reject synthetic bidask seed; use non-synthetic bidask event for metrics; ATR from bars_1m kept.
+- system_safety_v1: _latest_event_by_code skips payload.synthetic (reject_synthetic=True); prevents smoke seed from poisoning staleness guard.
+- run_paper_live_v1: added TMF_DEV_ALLOW_STALE_BIDASK=1 to bypass ONLY feed-staleness guard for after-hours/offline smoke; default remains strict.
+- paper_live_integration_smoke_v1.sh: seed bidask_fop_v1 as NON-synthetic to satisfy safety truth-source rules.
+
+### Verification (PASS)
+- m2_regression_risk_gates_v1.sh: PASS (daily max loss / consec loss cooldown / cooldown expiry).
+- m2_regression_market_quality_gates_v1.sh: PASS (spread/vol/liquidity rejects + pass case).
+- paper_live_integration_smoke_v1.sh: PASS (>=1 FILLED, db assertions ok).
+- Offline manual run: TMF_DEV_ALLOW_STALE_BIDASK=1 python3 -m src.oms.run_paper_live_v1 -> case2 FILLED.
+
+### Logs
+- runtime/logs/m2_regression_risk_gates_v1.last.log
+- runtime/logs/m2_regression_market_quality_gates_v1.last.log
+- runtime/logs/paper_live_integration_smoke_v1.last.log
