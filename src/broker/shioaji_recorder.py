@@ -5,6 +5,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 import yaml
 import shioaji as sj
+import sqlite3
+import threading
 
 STOP = False
 
@@ -162,6 +164,42 @@ def main():
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     out_path = out_dir / f"raw_events_{stamp}.jsonl"
 
+    # --- DB (truth source) ---
+    # Use TMF_DB_PATH if provided, else default runtime/data/tmf_autotrader_v1.sqlite3
+    db_path = Path(os.environ.get("TMF_DB_PATH", str(repo / "runtime" / "data" / "tmf_autotrader_v1.sqlite3")))
+    from src.data.store_sqlite_v1 import init_db as _init_db
+    _init_db(db_path)
+
+    # Shioaji callbacks may run in non-main threads; allow cross-thread access and serialize writes.
+    con = sqlite3.connect(str(db_path), check_same_thread=False)
+    con.execute("PRAGMA journal_mode=WAL;")
+    con.execute("PRAGMA synchronous=NORMAL;")
+    con.execute("PRAGMA foreign_keys=ON;")
+    cur = con.cursor()
+
+    lock = threading.Lock()
+    ingest_ts = datetime.now().isoformat(timespec="seconds")
+    # We treat the JSONL file as the 'source_file' for traceability/audit.
+    source_file = str(out_path.resolve())
+
+    pending = 0
+    last_commit = time.time()
+
+    def _db_insert(ts: str, kind: str, payload: dict):
+        nonlocal pending, last_commit
+        with lock:
+            cur.execute(
+                "INSERT INTO events(ts, kind, payload_json, source_file, ingest_ts) VALUES(?,?,?,?,?)",
+                (str(ts), str(kind), json.dumps(payload, ensure_ascii=False, default=_json_default), source_file, ingest_ts),
+            )
+            pending += 1
+            now = time.time()
+            # amortize commit cost (batch commit improves throughput)
+            if pending >= 200 or (now - last_commit) >= 1.0:
+                con.commit()
+                pending = 0
+                last_commit = now
+
     # create file immediately + session_start record
     write_jsonl(out_path, {
         "ts": datetime.now().isoformat(timespec="milliseconds"),
@@ -193,6 +231,10 @@ def main():
             "payload": payload,
         }
         write_jsonl(out_path, rec)
+        try:
+            _db_insert(rec["ts"], kind, payload)
+        except Exception as e:
+            print(f"[WARN] db_insert failed: {e}", file=sys.stderr)
 
     # handlers
     @api.on_tick_fop_v1()
@@ -256,6 +298,17 @@ def main():
     except Exception:
         pass
     write_event("session_stop", {"reason": "signal" if STOP else "max_seconds"})
+
+    # best-effort flush/close DB
+    try:
+        with lock:
+            con.commit()
+    except Exception:
+        pass
+    try:
+        con.close()
+    except Exception:
+        pass
     print("[OK] stopped")
 
 if __name__ == "__main__":
