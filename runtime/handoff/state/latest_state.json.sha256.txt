@@ -1,0 +1,1 @@
+2ed780ec1ec0f07efdefd158dda852409f0c316f942b53d0b8918c544035acde  runtime/handoff/state/latest_state.json
