@@ -13,3 +13,22 @@ runtime/data/
 runtime/artifacts/
 # Secrets (NEVER COMMIT)
 configs/secrets/
+
+# ---- TMF AutoTrader hygiene ----
+# Runtime outputs (NEVER COMMIT)
+runtime/
+
+# Broker logs (local)
+shioaji.log
+
+# Local databases / temp artifacts
+*.sqlite3
+*.db
+
+# Backups / scratch / editor droppings
+*.bak
+*.bak.*
+*.bak_*
+*~
+*.swp
+*.swo
