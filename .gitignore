@@ -32,3 +32,10 @@ shioaji.log
 *~
 *.swp
 *.swo
+
+# Runtime (allow state snapshots)
+runtime/**
+!runtime/
+!runtime/handoff/
+!runtime/handoff/state/
+
