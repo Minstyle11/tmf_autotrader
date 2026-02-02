@@ -21,7 +21,13 @@ LAST="$LOG_DIR/prepush_m2_regression_suite.last.log"
 # When run manually from a terminal, stdin is a TTY; avoid blocking on `cat`.
 REFS=""
 if [ ! -t 0 ]; then
+  if [ -t 0 ]; then
+  # Manual run (TTY): avoid blocking on stdin
+  REFS="(tty/no-stdin)"
+else
+  # Real git push: refs are provided on stdin
   REFS="$(cat || true)"
+fi
 fi
 
 {

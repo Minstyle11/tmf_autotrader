@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.venv-*/
+.env
+.env.*
+# OS
+.DS_Store
+# Runtime
+runtime/logs/
+runtime/data/
+runtime/artifacts/
+# Secrets (NEVER COMMIT)
+configs/secrets/

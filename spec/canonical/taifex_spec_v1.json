@@ -1,0 +1,12 @@
+{
+  "_meta": {
+    "source": "seed_local_v1",
+    "note": "placeholder until TAIFEX fetch+parse is implemented",
+    "generated_ts": "AUTO"
+  },
+  "products": {
+    "TXF": {"type": "futures"},
+    "MTX": {"type": "futures"},
+    "TXO": {"type": "options"}
+  }
+}

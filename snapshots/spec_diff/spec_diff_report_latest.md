@@ -1,0 +1,1 @@
+# SPEC DIFF STOPPER REPORT (v1)\n\n- canonical: spec/canonical/taifex_spec_v1.json\n- candidate: runtime/spec/taifex_spec_latest.json\n- sha_old: ae5ad6e6d5556f5c3735926acef83310586b7a9cc008406b2e5df656917fd5e5\n- sha_new: ae5ad6e6d5556f5c3735926acef83310586b7a9cc008406b2e5df656917fd5e5\n- same: True\n- changed_keys_count: 0\n\n

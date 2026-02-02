@@ -1,0 +1,24 @@
+{
+  "version": "v1",
+  "note": "JSON-compatible YAML to keep repo dependency-free (YAML superset of JSON).",
+  "by_code": {
+    "SAFETY_FEED_STALE": { "action": "COOLDOWN", "severity": "HIGH" },
+    "RISK_DAILY_MAX_LOSS": { "action": "KILL", "severity": "HIGH" },
+    "RISK_CONSEC_LOSS_COOLDOWN": { "action": "COOLDOWN", "severity": "MED" },
+    "RISK_STOP_REQUIRED": { "action": "REJECT", "severity": "MED" },
+    "RISK_MARKET_METRICS_REQUIRED": { "action": "REJECT", "severity": "MED" },
+    "RISK_PER_TRADE_MAX_LOSS": { "action": "REJECT", "severity": "MED" },
+    "RISK_SPREAD_TOO_WIDE": { "action": "REJECT", "severity": "MED" },
+    "RISK_VOL_TOO_HIGH": { "action": "REJECT", "severity": "MED" },
+    "RISK_LIQUIDITY_LOW": { "action": "REJECT", "severity": "MED" }
+  },
+  "by_prefix": {
+    "SAFETY_": { "action": "COOLDOWN", "severity": "HIGH" },
+    "RISK_": { "action": "REJECT", "severity": "MED" },
+    "BROKER_": { "action": "RETRY", "severity": "MED" },
+    "EXEC_": { "action": "REJECT", "severity": "MED" }
+  },
+  "by_domain": {
+    "UNKNOWN": { "action": "REJECT", "severity": "LOW" }
+  }
+}
