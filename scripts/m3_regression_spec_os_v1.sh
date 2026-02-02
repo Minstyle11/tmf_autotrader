@@ -15,7 +15,7 @@ import json
 from pathlib import Path
 p = Path("runtime/spec/taifex_spec_latest.json")
 obj = json.loads(p.read_text(encoding="utf-8"))
-obj.setdefault("products", {}).setdefault("TXF", {})["market_order_limit_regular"] = 10
+obj.setdefault("products", {}).setdefault("TXF", {})["market_order_limit_regular"] = 99999
 Path("runtime/spec/taifex_spec_latest_tmp.json").write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 

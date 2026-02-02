@@ -1,12 +1,20 @@
 {
   "_meta": {
-    "source": "seed_local_v1",
+    "generated_ts": "AUTO",
     "note": "placeholder until TAIFEX fetch+parse is implemented",
-    "generated_ts": "AUTO"
+    "source": "seed_local_v1"
   },
   "products": {
-    "TXF": {"type": "futures"},
-    "MTX": {"type": "futures"},
-    "TXO": {"type": "options"}
+    "MTX": {
+      "type": "futures"
+    },
+    "TXF": {
+      "market_order_limit_after_hours": 5,
+      "market_order_limit_regular": 10,
+      "type": "futures"
+    },
+    "TXO": {
+      "type": "options"
+    }
   }
 }
