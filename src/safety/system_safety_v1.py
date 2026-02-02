@@ -30,6 +30,14 @@ class SafetyVerdictV1:
     reason: str
     details: Dict[str, Any]
 
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "ok": bool(self.ok),
+            "code": str(self.code),
+            "reason": str(self.reason),
+            "details": dict(self.details) if isinstance(self.details, dict) else {"_raw": str(self.details)},
+        }
+
 
 def _parse_hhmm(s: str) -> time:
     s = str(s).strip()
@@ -70,6 +78,14 @@ def _loads(s: Any) -> Dict[str, Any]:
         return {}
 
 
+
+    def to_dict(self):
+        return {
+            "ok": bool(self.ok),
+            "code": str(self.code),
+            "reason": str(self.reason),
+            "details": self.details,
+        }
 class SystemSafetyEngineV1:
     """
     v1 goals (aligned with v18 mainline OS priorities):
