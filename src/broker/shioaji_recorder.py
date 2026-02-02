@@ -264,6 +264,14 @@ def main():
 
     def write_event(kind: str, payload_obj):
         payload = obj_to_dict(payload_obj)
+        # enrich payload with trace keys for downstream gates/metrics (do NOT override)
+        try:
+            if isinstance(payload, dict):
+                payload.setdefault('source_file', source_file)
+                payload.setdefault('ingest_ts', ingest_ts)
+                payload.setdefault('synthetic', False)
+        except Exception:
+            pass
         rec = {
             "ts": datetime.now().isoformat(timespec="milliseconds"),
             "kind": kind,
@@ -348,7 +356,11 @@ def main():
         except Exception:
             pass
         try:
-            t_db.join(timeout=5.0)
+            # Avoid self-join (EDEADLK / 'Resource deadlock avoided')
+            if getattr(t_db, "ident", None) == __import__("threading").current_thread().ident:
+                print("[WARN] skip t_db.join: current thread is t_db", file=sys.stderr)
+            else:
+                t_db.join(timeout=5.0)
         except Exception:
             pass
         print(f"[INFO] db_stats={db_stats}")
