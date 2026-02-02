@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [ -z "${REPO_ROOT}" ]; then
+  REPO_ROOT="$HOME/tmf_autotrader"
+fi
+cd "$REPO_ROOT"
+
+REMOTE_NAME="${1:-}"
+REMOTE_URL="${2:-}"
+
+TS="$(date +%Y%m%d_%H%M%S)"
+LOG_DIR="runtime/logs"
+mkdir -p "$LOG_DIR"
+LOG="$LOG_DIR/prepush_m2_regression_suite.${TS}.log"
+LAST="$LOG_DIR/prepush_m2_regression_suite.last.log"
+
+# pre-push provides refs on stdin with lines:
+# <local-ref> SP <local-object-name> SP <remote-ref> SP <remote-object-name> LF
+# When run manually from a terminal, stdin is a TTY; avoid blocking on `cat`.
+REFS=""
+if [ ! -t 0 ]; then
+  REFS="$(cat || true)"
+fi
+
+{
+  echo "=== [pre-push] start $(date -Iseconds) ==="
+  echo "repo_root=$REPO_ROOT"
+  echo "remote_name=$REMOTE_NAME"
+  echo "remote_url=$REMOTE_URL"
+  echo "=== [refs from stdin] ==="
+  if [ -n "$REFS" ]; then
+    echo "$REFS"
+  else
+    echo "(empty)"
+  fi
+  echo "=== [/refs] ==="
+  echo "=== [run] scripts/m2_regression_suite_v1.sh ==="
+  ./scripts/m2_regression_suite_v1.sh
+  echo "=== [pre-push] PASS $(date -Iseconds) ==="
+} 2>&1 | tee "$LOG"
+
+cp -f "$LOG" "$LAST"
+echo "[OK] wrote log: $LAST"
