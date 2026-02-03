@@ -103,3 +103,10 @@ manifest 內容一變 → manifest 檔案的 hash 就變 → 那行 checksum 也
 ### 結論
 - 只有當以上 1~5 全 PASS，該 ZIP 才允許作為「新視窗零輸入 0 斷層」交接包。
 - 任何 FAIL → 立刻視為封存失敗，必須修復後重打包重驗收。
+
+
+## ULTRA HARDGATE STRICT PASS (NO MANIFEST LINES)
+- ts: 2026-02-03T11:05:05+08:00
+- zip: /Users/williamhsu/tmf_autotrader/runtime/handoff/latest/TMF_AutoTrader_WindowPack_ULTRA_20260203_092328.zip
+- sha256: 5cee5b731c90a0d7ebea80ebc4a5551d34c6343549f27427787e8f2cf2b03b37
+- hardgate: sidecar OK; unzip OK; pack-root manifest OK; manifest contains ZERO 'MANIFEST_SHA256_ALL_FILES.txt' lines; strict recompute+compare PASS

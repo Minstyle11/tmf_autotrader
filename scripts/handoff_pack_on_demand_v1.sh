@@ -115,7 +115,7 @@ items = []
 for p in sorted(root.rglob('*')):
     if p.is_file():
         rel = p.relative_to(root).as_posix()
-        if rel == mf.name:  # exclude manifest itself to avoid self-line mismatch
+        if p.name == mf.name:  # exclude ANY manifest file to avoid hardgate self-line
             continue
         items.append((rel, sha256_file(p)))
 
