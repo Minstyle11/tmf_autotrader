@@ -116,4 +116,25 @@ manifest 內容一變 → manifest 檔案的 hash 就變 → 那行 checksum 也
 - 新視窗只需附：`<WindowPack>.zip` + `<WindowPack>.zip.sha256.txt`
 - 新視窗不得要求使用者補充說明；必須能 **100% 從 pack 內資料恢復上下文、狀態、規則、進度、驗收證據**。
 
+## ULTRA_HARDGATE_STRICT_V1_20260203
+（憲法級必做）每次產生 ULTRA WindowPack **必須**完成以下驗收，且全數 PASS 才能視為可交接：
 
+### HARDGATE-1：ZIP sidecar sha256
+- 驗收：zip.sha256.txt 與 zip 實際 sha256 必須一致
+
+### HARDGATE-2：解壓到 temp
+- 驗收：unzip 成功，且 unpack_root 正確
+
+### HARDGATE-3：MANIFEST 必須存在於 pack root
+- 驗收：{"<unpack_root>"}/MANIFEST_SHA256_ALL_FILES.txt 必須存在
+
+### HARDGATE-4：MANIFEST 禁止 self-line
+- 驗收：MANIFEST 內容不得包含 `MANIFEST_SHA256_ALL_FILES.txt` 自己那一行（避免自我指涉導致必然 mismatch）
+
+### HARDGATE-5：strict recompute + compare
+- 驗收：以 unpack_root 為 root 重新計算所有檔案 sha256（排除 manifest 本身）後，必須與 MANIFEST 完全一致
+- 期望輸出：`[PASS] strict manifest match (exclude self)`
+
+### 結論
+- 只有當以上 1~5 全 PASS，該 ZIP 才允許作為「新視窗零輸入 0 斷層」交接包。
+- 任何 FAIL → 立刻視為封存失敗，必須修復後重打包重驗收。

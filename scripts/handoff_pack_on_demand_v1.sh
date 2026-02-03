@@ -96,32 +96,38 @@ mkdir -p "$PKG_DIR/state" "$PKG_DIR/handoff"
 [ -f "$NEXT_STEP" ] && cp -f "$NEXT_STEP" "$PKG_DIR/state/next_step.txt" || true
 [ -f "$PROJ/docs/handoff/HANDOFF_LOG.md" ] && cp -f "$PROJ/docs/handoff/HANDOFF_LOG.md" "$PKG_DIR/handoff/HANDOFF_LOG.md" || true
 
-# ---- build manifest sha256 (inside PKG_DIR) ----
-python3 - <<'PY'
-import hashlib
+# ---- build manifest sha256 (root=PKG_DIR; exclude self-line for hardgate) ----
+python3 - "$PKG_DIR" <<'PY'
+import hashlib, sys
 from pathlib import Path
 
-root = Path("")
-mf = root / "MANIFEST_SHA256_ALL_FILES.txt"
+root = Path(sys.argv[1]).resolve()
+mf = root / 'MANIFEST_SHA256_ALL_FILES.txt'
 
 def sha256_file(p: Path) -> str:
     h = hashlib.sha256()
-    with p.open("rb") as f:
-        for chunk in iter(lambda: f.read(1024*1024), b""):
+    with p.open('rb') as f:
+        for chunk in iter(lambda: f.read(1024*1024), b''):
             h.update(chunk)
     return h.hexdigest()
 
 items = []
-for p in sorted(root.rglob("*")):
+for p in sorted(root.rglob('*')):
     if p.is_file():
         rel = p.relative_to(root).as_posix()
+        if rel == mf.name:  # exclude manifest itself to avoid self-line mismatch
+            continue
         items.append((rel, sha256_file(p)))
 
-mf.write_text("\n".join([f"{h}  {rel}" for rel,h in [(h,rel) for rel,h in [(h,rel) for rel,h in []]]]) + "", encoding="utf-8")
-# rewrite correctly
-mf.write_text("\n".join([f"{h}  {rel}" for rel,h in items]) + "\n", encoding="utf-8")
-print("[OK] wrote", mf, "files=", len(items))
+mf.write_text(''.join([f"{h}  {rel}\n" for (rel,h) in items]), encoding='utf-8')
+print('[OK] wrote', mf, 'files=', len(items))
 PY
+
+# ---- ensure top-level manifest for hardgate (root must have MANIFEST_SHA256_ALL_FILES.txt) ----
+if [ ! -f "$PKG_DIR/MANIFEST_SHA256_ALL_FILES.txt" ] && [ -f "$PKG_DIR/repo/MANIFEST_SHA256_ALL_FILES.txt" ]; then
+  cp -f "$PKG_DIR/repo/MANIFEST_SHA256_ALL_FILES.txt" "$PKG_DIR/MANIFEST_SHA256_ALL_FILES.txt"
+fi
+
 
 # ---- dryrun mode (no zip) ----
 if [ "$MODE" = "--dryrun" ]; then
@@ -135,7 +141,7 @@ fi
 # ---- zip + sha256 sidecar ----
 ( cd "$WORK_DIR" && /usr/bin/zip -qr "$ZIP_PATH" "$(basename "$PKG_DIR")" )
 
-SHA="$(python3 - <<'PY'
+SHA="$(python3 - "$ZIP_PATH" <<'PY'
 import hashlib, sys
 p = sys.argv[1]
 h = hashlib.sha256()
@@ -144,7 +150,8 @@ with open(p,"rb") as f:
     h.update(chunk)
 print(h.hexdigest())
 PY
-"$ZIP_PATH")"
+)"
+
 
 echo "$SHA  $ZIP_PATH" > "$ZIP_SHA"
 
