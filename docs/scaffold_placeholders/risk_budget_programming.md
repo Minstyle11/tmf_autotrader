@@ -1,0 +1,2 @@
+<!-- Original scaffold path: 風險預算程式化：每策略日虧/連虧/曝險上限、組合層回撤上限 -->
+# V18 scaffold placeholder: 風險預算程式化：每策略日虧/連虧/曝險上限、組合層回撤上限

@@ -1,0 +1,2 @@
+<!-- Original scaffold path: 一鍵重放（replay）任意一天（含下單/回報的模擬） -->
+# V18 scaffold placeholder: 一鍵重放（replay）任意一天（含下單/回報的模擬）
