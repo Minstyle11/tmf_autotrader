@@ -115378,3 +115378,2635 @@ python3 - <<'PY2'
 - runtime/logs/m2_regression_risk_gates_v1.last.log
 - runtime/logs/m2_regression_market_quality_gates_v1.last.log
 - runtime/logs/paper_live_integration_smoke_v1.last.log
+
+## [2026-02-03 21:08:44] ops_audit_hardgate_v1_20260203_210843
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-03 21:05:57
+- 專案總完成度：63.6% （已完成 14 / 22 項）
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [~] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+## Milestones
+### M0 Foundations
+- [x] Create repo skeleton + board + bible system + backup framework
+- [x] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
+- [x] Data store: schema v1 (events, bars, trades, orders, fills) + rotation
+- [x] Ops: runbook v1 + healthcheck v1 + auto-restart v1
+### M1 Sim + Cost Model
+- [x] TAIFEX fee/tax model v1 (exchange fees + futures transaction tax + broker fee configurable)
+- [x] Paper OMS + matching engine v1 (market/limit, partial fill if possible)
+- [x] Slippage model v1 (conservative)
+
+### M2 Risk Engine v1 (Risk First)
+- [x] Pre-trade gates (DONE: stop-required + per-trade max loss + daily max loss + consecutive-loss cooldown + market-quality gates (spread/ATR/liquidity) + regressions; TODO: wire real market_metrics source + decide strict_require_market_metrics for paper-live)
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-03 19:55:55] pm_tick
+- [2026-02-03 20:00:55] pm_tick
+- [2026-02-03 20:05:55] pm_tick
+- [2026-02-03 20:10:56] pm_tick
+- [2026-02-03 20:15:56] pm_tick
+- [2026-02-03 20:20:56] pm_tick
+- [2026-02-03 20:25:56] pm_tick
+- [2026-02-03 20:30:56] pm_tick
+- [2026-02-03 20:35:56] pm_tick
+- [2026-02-03 20:40:57] pm_tick
+- [2026-02-03 20:45:57] pm_tick
+- [2026-02-03 20:50:57] pm_tick
+- [2026-02-03 20:55:57] pm_tick
+- [2026-02-03 21:00:57] pm_tick
+- [2026-02-03 21:05:57] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+ M docs/board/CHANGELOG.md
+ M docs/board/PROJECT_BOARD.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+ M scripts/handoff_pack_on_demand_v1.sh
+ M scripts/mk_windowpack_ultra.sh
+ M src/oms/run_paper_live_v1.py
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-03 21:20:25] ops_audit_hardgate_v1_20260203_212024
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-03 21:15:58
+- 專案總完成度：63.6% （已完成 14 / 22 項）
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [~] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+## Milestones
+### M0 Foundations
+- [x] Create repo skeleton + board + bible system + backup framework
+- [x] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
+- [x] Data store: schema v1 (events, bars, trades, orders, fills) + rotation
+- [x] Ops: runbook v1 + healthcheck v1 + auto-restart v1
+### M1 Sim + Cost Model
+- [x] TAIFEX fee/tax model v1 (exchange fees + futures transaction tax + broker fee configurable)
+- [x] Paper OMS + matching engine v1 (market/limit, partial fill if possible)
+- [x] Slippage model v1 (conservative)
+
+### M2 Risk Engine v1 (Risk First)
+- [x] Pre-trade gates (DONE: stop-required + per-trade max loss + daily max loss + consecutive-loss cooldown + market-quality gates (spread/ATR/liquidity) + regressions; TODO: wire real market_metrics source + decide strict_require_market_metrics for paper-live)
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-03 20:05:55] pm_tick
+- [2026-02-03 20:10:56] pm_tick
+- [2026-02-03 20:15:56] pm_tick
+- [2026-02-03 20:20:56] pm_tick
+- [2026-02-03 20:25:56] pm_tick
+- [2026-02-03 20:30:56] pm_tick
+- [2026-02-03 20:35:56] pm_tick
+- [2026-02-03 20:40:57] pm_tick
+- [2026-02-03 20:45:57] pm_tick
+- [2026-02-03 20:50:57] pm_tick
+- [2026-02-03 20:55:57] pm_tick
+- [2026-02-03 21:00:57] pm_tick
+- [2026-02-03 21:05:57] pm_tick
+- [2026-02-03 21:10:57] pm_tick
+- [2026-02-03 21:15:58] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+ M docs/board/CHANGELOG.md
+ M docs/board/PROJECT_BOARD.md
+ M docs/handoff/HANDOFF_LOG.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+ M scripts/handoff_pack_on_demand_v1.sh
+ M scripts/mk_windowpack_ultra.sh
+ M scripts/ops_audit_hardgate_v1.sh
+ M src/oms/run_paper_live_v1.py
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-03 21:52:34] ops_audit_hardgate_v1_20260203_215233
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-03 21:50:59
+- 專案總完成度：63.6% （已完成 14 / 22 項）
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [~] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+## Milestones
+### M0 Foundations
+- [x] Create repo skeleton + board + bible system + backup framework
+- [x] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
+- [x] Data store: schema v1 (events, bars, trades, orders, fills) + rotation
+- [x] Ops: runbook v1 + healthcheck v1 + auto-restart v1
+### M1 Sim + Cost Model
+- [x] TAIFEX fee/tax model v1 (exchange fees + futures transaction tax + broker fee configurable)
+- [x] Paper OMS + matching engine v1 (market/limit, partial fill if possible)
+- [x] Slippage model v1 (conservative)
+
+### M2 Risk Engine v1 (Risk First)
+- [x] Pre-trade gates (DONE: stop-required + per-trade max loss + daily max loss + consecutive-loss cooldown + market-quality gates (spread/ATR/liquidity) + regressions; TODO: wire real market_metrics source + decide strict_require_market_metrics for paper-live)
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-03 20:40:57] pm_tick
+- [2026-02-03 20:45:57] pm_tick
+- [2026-02-03 20:50:57] pm_tick
+- [2026-02-03 20:55:57] pm_tick
+- [2026-02-03 21:00:57] pm_tick
+- [2026-02-03 21:05:57] pm_tick
+- [2026-02-03 21:10:57] pm_tick
+- [2026-02-03 21:15:58] pm_tick
+- [2026-02-03 21:20:58] pm_tick
+- [2026-02-03 21:25:58] pm_tick
+- [2026-02-03 21:30:58] pm_tick
+- [2026-02-03 21:35:58] pm_tick
+- [2026-02-03 21:40:58] pm_tick
+- [2026-02-03 21:45:59] pm_tick
+- [2026-02-03 21:50:59] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+ M docs/board/CHANGELOG.md
+ M docs/board/PROJECT_BOARD.md
+ M docs/handoff/HANDOFF_LOG.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+ M scripts/handoff_pack_on_demand_v1.sh
+ M scripts/mk_windowpack_ultra.sh
+ M scripts/ops_audit_hardgate_v1.sh
+ M src/oms/paper_oms_risk_safety_wrapper_v1.py
+ M src/oms/run_paper_live_v1.py
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-03 21:53:29] ops_audit_hardgate_v1_20260203_215328
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-03 21:50:59
+- 專案總完成度：63.6% （已完成 14 / 22 項）
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [~] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+## Milestones
+### M0 Foundations
+- [x] Create repo skeleton + board + bible system + backup framework
+- [x] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
+- [x] Data store: schema v1 (events, bars, trades, orders, fills) + rotation
+- [x] Ops: runbook v1 + healthcheck v1 + auto-restart v1
+### M1 Sim + Cost Model
+- [x] TAIFEX fee/tax model v1 (exchange fees + futures transaction tax + broker fee configurable)
+- [x] Paper OMS + matching engine v1 (market/limit, partial fill if possible)
+- [x] Slippage model v1 (conservative)
+
+### M2 Risk Engine v1 (Risk First)
+- [x] Pre-trade gates (DONE: stop-required + per-trade max loss + daily max loss + consecutive-loss cooldown + market-quality gates (spread/ATR/liquidity) + regressions; TODO: wire real market_metrics source + decide strict_require_market_metrics for paper-live)
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-03 20:40:57] pm_tick
+- [2026-02-03 20:45:57] pm_tick
+- [2026-02-03 20:50:57] pm_tick
+- [2026-02-03 20:55:57] pm_tick
+- [2026-02-03 21:00:57] pm_tick
+- [2026-02-03 21:05:57] pm_tick
+- [2026-02-03 21:10:57] pm_tick
+- [2026-02-03 21:15:58] pm_tick
+- [2026-02-03 21:20:58] pm_tick
+- [2026-02-03 21:25:58] pm_tick
+- [2026-02-03 21:30:58] pm_tick
+- [2026-02-03 21:35:58] pm_tick
+- [2026-02-03 21:40:58] pm_tick
+- [2026-02-03 21:45:59] pm_tick
+- [2026-02-03 21:50:59] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+ M docs/board/CHANGELOG.md
+ M docs/board/PROJECT_BOARD.md
+ M docs/handoff/HANDOFF_LOG.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+ M scripts/handoff_pack_on_demand_v1.sh
+ M scripts/mk_windowpack_ultra.sh
+ M scripts/ops_audit_hardgate_v1.sh
+ M src/oms/paper_oms_risk_safety_wrapper_v1.py
+ M src/oms/run_paper_live_v1.py
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-04 12:33:13] ops_audit_hardgate_v1_20260204_123312
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-04 12:31:05
+- 專案總完成度：22.0% （已完成 28 / 127 項）
+
+**專案總完成度 / Overall completion:** 22.0%（已完成 28 / 127 項；未完成 99 項）
+
+## 里程碑完成度
+- M0 盤前/盤中資料錄製 / Recorder (Shioaji)：80.0% （已完成 4 / 5）
+- M1 資料管線 / Data Pipeline (ingest → normalize → bars)：75.0% （已完成 3 / 4）
+- M2 回歸測試 / Regression Suite：75.0% （已完成 3 / 4）
+- M3 OMS / Paper-Live (Paper)：50.0% （已完成 1 / 2）
+- M4 風控引擎 / Risk Engine：50.0% （已完成 2 / 4）
+- M5 連線下單 / Execution (Live readiness; still gated)：0.0% （已完成 0 / 2）
+- M6 治理 / Governance & Handoff (ULTRA ZERO-GAP)：100.0% （已完成 4 / 4）
+- M7 Ops / 可觀測性、備份、日結、回滾：33.3% （已完成 1 / 3）
+- vv18_1 條款落地任務 / vv18_1 Compliance Tasks (AUTO)：0.0% （已完成 0 / 35）
+- vv18_2 條款落地任務 / vv18_2 Compliance Tasks (AUTO)：0.0% （已完成 0 / 38）
+- M8 — 統計嚴謹性 × 交易所硬約束 × 自主學習安全護欄（v18.1）：0.0% （已完成 0 / 8）
+- M9 — 期望值建模 × 微結構/執行 × DPBM/延遲治理 × 自我改進閉環（v18.2）：0.0% （已完成 0 / 8）
+- D1. 單一入口 / Single Entrypoint：0.0% （已完成 0 / 0）
+- D2. Evidence Hook 機制 / Evidence Hooks：0.0% （已完成 0 / 0）
+- D3. 變更紀錄 / Changelog (append-only)：0.0% （已完成 0 / 0）
+- 缺口判定規則（何時要新增新 TASK）：0.0% （已完成 0 / 0）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [~] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader 專案看板 / Project Board (v18-aligned)
+> **One-Doc / One-Truth**：`TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md` 為唯一憲法文件；任何衝突以 v18 為準。
+> **核心目標 / North Star**：建立「長期大賺小賠、穩定獲利、全自動化、可持續自主學習」的台灣期貨量化交易系統（先 Paper，後 Live）。
+> **Owner / 決策者**：預設由助理（AI）依照 North Star 直接決策最佳方案；能自動化的流程必須自動化並逐步減少人工。
+
+---
+## 0. 快速導覽 / Quick Navigation
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-04 11:50:21] pm_tick_ops_bible_refresh
+- [2026-02-04 11:53:47] pm_tick_closepack_bible_refresh
+- [2026-02-04 11:54:35] pm_tick
+- [2026-02-04 11:59:26] pm_tick_close_pack_task_refresh
+- [2026-02-04 11:59:36] pm_tick
+- [2026-02-04 12:02:26] pm_tick_close_pack_snapshot_refresh
+- [2026-02-04 12:04:36] pm_tick
+- [2026-02-04 12:07:31] close_pack_tick
+- [2026-02-04 12:09:36] pm_tick
+- [2026-02-04 12:14:37] pm_tick
+- [2026-02-04 12:19:37] pm_tick
+- [2026-02-04 12:24:37] pm_tick
+- [2026-02-04 12:28:07] pm_logrotate_closepack_snapshot
+- [2026-02-04 12:29:38] pm_tick
+- [2026-02-04 12:31:05] pm_logrotate_closepack_allowlist_fix
+```
+
+### Working tree (git status --porcelain)
+
+```text
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+ M docs/board/CHANGELOG.md
+ M docs/board/PROJECT_BOARD.md
+ M docs/handoff/HANDOFF_LOG.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+ M scripts/handoff_pack_on_demand_v1.sh
+ M scripts/handoff_state_snapshot_v1.sh
+ M scripts/m0_ops_autorestart_v1.sh
+ M scripts/mk_windowpack_ultra.sh
+ M scripts/ops_audit_hardgate_v1.sh
+ M scripts/pm_refresh_board.sh
+ M scripts/pm_tick.sh
+ M src/oms/paper_oms_risk_safety_wrapper_v1.py
+ M src/oms/run_paper_live_v1.py
+ M src/safety/system_safety_v1.py
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+?? docs/bibles/patches/
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
+?? docs/ops/OPS_INDEX.md
+?? docs/ops/OPS_INDEX.md.sha256.txt
+?? docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+?? docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
+?? docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+?? docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
+?? docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
+?? docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
+?? docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+?? docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
+?? docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+?? docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
+?? scripts/build_daily_finance_close_pack_v1.sh
+?? scripts/m6_update_project_board_v1.sh
+?? scripts/m8_update_board_from_patches_v1.py
+?? scripts/pm_log_rotate_v1.sh
+?? scripts/run_daily_finance_close_pack_daily_v1.sh
+?? scripts/verify_pm_refresh_board_v1.sh
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-04 20:58:56] ops_audit_hardgate_v1_20260204_205854
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-04 20:56:40
+- 專案總完成度：0.0% （已完成 0 / 73 項）
+
+**專案總完成度 / Overall completion:** 0.0%（已完成 0 / 73 項；未完成 73 項）
+
+<!-- AUTO:PROGRESS_BEGIN -->
+- **TOTAL_TASKS:** 73
+- **DONE_TASKS:** 0
+- **PCT:** 0.0%
+- **LAST_TASK_UPDATE_AT:** 2026-02-04 20:56:40
+<!-- AUTO:PROGRESS_END -->
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [~] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+## Milestones
+### M0 Foundations
+- [x] Create repo skeleton + board + bible system + backup framework
+- [x] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-04 19:50:23] pm_tick
+- [2026-02-04 19:55:23] pm_tick
+- [2026-02-04 20:00:24] pm_tick
+- [2026-02-04 20:05:24] pm_tick
+- [2026-02-04 20:10:25] pm_tick
+- [2026-02-04 20:15:25] pm_tick
+- [2026-02-04 20:18:36] test_tick_no_board_touch
+- [2026-02-04 20:20:25] pm_tick
+- [2026-02-04 20:25:26] pm_tick
+- [2026-02-04 20:30:26] pm_tick
+- [2026-02-04 20:33:20] pm_refresh_board
+- [2026-02-04 20:35:26] pm_tick
+- [2026-02-04 20:40:27] pm_tick
+- [2026-02-04 20:45:27] pm_tick
+- [2026-02-04 20:50:28] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+ M docs/board/CHANGELOG.md
+ M docs/board/PROJECT_BOARD.md
+ M docs/handoff/HANDOFF_LOG.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+ M scripts/handoff_pack_on_demand_v1.sh
+ M scripts/handoff_state_snapshot_v1.sh
+ M scripts/m0_ops_autorestart_v1.sh
+ M scripts/mk_windowpack_ultra.sh
+ M scripts/ops_audit_hardgate_v1.sh
+ M scripts/pm_refresh_board.sh
+ M scripts/pm_tick.sh
+ M src/oms/paper_oms_risk_safety_wrapper_v1.py
+ M src/oms/run_paper_live_v1.py
+ M src/safety/system_safety_v1.py
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+?? docs/bibles/patches/
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md.sha256.txt
+?? docs/ops/OPS_INDEX.md
+?? docs/ops/OPS_INDEX.md.sha256.txt
+?? docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+?? docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
+?? docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+?? docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
+?? docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
+?? docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
+?? docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+?? docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
+?? docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+?? docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
+?? scripts/build_daily_finance_close_pack_v1.sh
+?? scripts/m6_update_project_board_v1.sh
+?? scripts/m8_update_board_from_patches_v1.py
+?? scripts/pm_log_rotate_v1.sh
+?? scripts/run_daily_finance_close_pack_daily_v1.sh
+?? scripts/smoke_all_v1.sh
+?? scripts/verify_pm_refresh_board_v1.sh
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-04 21:08:44] ops_audit_hardgate_v1_20260204_210843
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-04 21:05:29
+- 專案總完成度：0.0% （已完成 0 / 73 項）
+
+**專案總完成度 / Overall completion:** 0.0%（已完成 0 / 73 項；未完成 73 項）
+
+<!-- AUTO:PROGRESS_BEGIN -->
+- **TOTAL_TASKS:** 73
+- **DONE_TASKS:** 0
+- **PCT:** 0.0%
+- **LAST_TASK_UPDATE_AT:** 2026-02-04 21:05:29
+<!-- AUTO:PROGRESS_END -->
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [~] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+## Milestones
+### M0 Foundations
+- [x] Create repo skeleton + board + bible system + backup framework
+- [x] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-04 19:50:23] pm_tick
+- [2026-02-04 19:55:23] pm_tick
+- [2026-02-04 20:00:24] pm_tick
+- [2026-02-04 20:05:24] pm_tick
+- [2026-02-04 20:10:25] pm_tick
+- [2026-02-04 20:15:25] pm_tick
+- [2026-02-04 20:18:36] test_tick_no_board_touch
+- [2026-02-04 20:20:25] pm_tick
+- [2026-02-04 20:25:26] pm_tick
+- [2026-02-04 20:30:26] pm_tick
+- [2026-02-04 20:33:20] pm_refresh_board
+- [2026-02-04 20:35:26] pm_tick
+- [2026-02-04 20:40:27] pm_tick
+- [2026-02-04 20:45:27] pm_tick
+- [2026-02-04 20:50:28] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+ M docs/board/CHANGELOG.md
+ M docs/board/PROJECT_BOARD.md
+ M docs/handoff/HANDOFF_LOG.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+ M scripts/handoff_pack_on_demand_v1.sh
+ M scripts/handoff_state_snapshot_v1.sh
+ M scripts/m0_ops_autorestart_v1.sh
+ M scripts/mk_windowpack_ultra.sh
+ M scripts/ops_audit_hardgate_v1.sh
+ M scripts/pm_refresh_board.sh
+ M scripts/pm_tick.sh
+ M src/oms/paper_oms_risk_safety_wrapper_v1.py
+ M src/oms/run_paper_live_v1.py
+ M src/safety/system_safety_v1.py
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+?? docs/bibles/patches/
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md.sha256.txt
+?? docs/ops/OPS_INDEX.md
+?? docs/ops/OPS_INDEX.md.sha256.txt
+?? docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+?? docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
+?? docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+?? docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
+?? docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
+?? docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
+?? docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+?? docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
+?? docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+?? docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
+?? scripts/build_daily_finance_close_pack_v1.sh
+?? scripts/m6_update_project_board_v1.sh
+?? scripts/m8_update_board_from_patches_v1.py
+?? scripts/pm_log_rotate_v1.sh
+?? scripts/run_daily_finance_close_pack_daily_v1.sh
+?? scripts/smoke_all_v1.sh
+?? scripts/verify_pm_refresh_board_v1.sh
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-04 22:54:32] ops_audit_hardgate_v1_20260204_225430
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-04 22:54:30
+- 專案總完成度：0.0% （已完成 0 / 73 項）
+
+**專案總完成度 / Overall completion:** 0.0%（已完成 0 / 73 項；未完成 73 項）
+
+<!-- AUTO:PROGRESS_BEGIN -->
+- **TOTAL_TASKS:** 95
+- **DONE_TASKS:** 14
+- **PCT:** 14.7%
+<!-- AUTO:PROGRESS_END -->
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [~] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+## Milestones
+### M0 Foundations
+- [x] Create repo skeleton + board + bible system + backup framework
+- [x] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
+- [x] Data store: schema v1 (events, bars, trades, orders, fills) + rotation
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-04 19:50:23] pm_tick
+- [2026-02-04 19:55:23] pm_tick
+- [2026-02-04 20:00:24] pm_tick
+- [2026-02-04 20:05:24] pm_tick
+- [2026-02-04 20:10:25] pm_tick
+- [2026-02-04 20:15:25] pm_tick
+- [2026-02-04 20:18:36] test_tick_no_board_touch
+- [2026-02-04 20:20:25] pm_tick
+- [2026-02-04 20:25:26] pm_tick
+- [2026-02-04 20:30:26] pm_tick
+- [2026-02-04 20:33:20] pm_refresh_board
+- [2026-02-04 20:35:26] pm_tick
+- [2026-02-04 20:40:27] pm_tick
+- [2026-02-04 20:45:27] pm_tick
+- [2026-02-04 20:50:28] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+ M docs/board/CHANGELOG.md
+ M docs/board/PROJECT_BOARD.md
+ M docs/handoff/HANDOFF_LOG.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+ M execution/reject_policy.yaml
+ M scripts/handoff_pack_on_demand_v1.sh
+ M scripts/handoff_state_snapshot_v1.sh
+ M scripts/m0_ops_autorestart_v1.sh
+ M scripts/m3_mainline_runner_v1.sh
+ M scripts/mk_windowpack_ultra.sh
+ M scripts/ops_audit_hardgate_v1.sh
+ M scripts/pm_refresh_board.sh
+ M scripts/pm_tick.sh
+ M src/broker/shioaji_recorder.py
+ M src/oms/paper_oms_risk_safety_wrapper_v1.py
+ M src/oms/run_paper_live_v1.py
+ M src/safety/system_safety_v1.py
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+?? docs/bibles/patches/
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md.sha256.txt
+?? docs/ops/OPS_INDEX.md
+?? docs/ops/OPS_INDEX.md.sha256.txt
+?? docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+?? docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
+?? docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+?? docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
+?? docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
+?? docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
+?? docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+?? docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
+?? docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+?? docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
+?? execution/taifex_preflight_v1.py
+?? scripts/build_daily_finance_close_pack_v1.sh
+?? scripts/m3_regression_taifex_preflight_v1.sh
+?? scripts/m3_regression_taifex_split_v1.sh
+?? scripts/m6_update_project_board_v1.sh
+?? scripts/m8_update_board_from_patches_v1.py
+?? scripts/pm_log_rotate_v1.sh
+?? scripts/pm_refresh_board_v2.py
+?? scripts/run_daily_finance_close_pack_daily_v1.sh
+?? scripts/smoke_all_v1.sh
+?? scripts/verify_pm_refresh_board_v1.sh
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-04 23:13:23] ops_audit_hardgate_v1_20260204_231321
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-04 23:13:11
+- 專案總完成度：0.0% （已完成 0 / 73 項）
+
+**專案總完成度 / Overall completion:** 0.0%（已完成 0 / 73 項；未完成 73 項）
+
+<!-- AUTO:PROGRESS_BEGIN -->
+- **TOTAL_TASKS:** 95
+- **DONE_TASKS:** 14
+- **PCT:** 14.7%
+<!-- AUTO:PROGRESS_END -->
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [~] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+## Milestones
+### M0 Foundations
+- [x] Create repo skeleton + board + bible system + backup framework
+- [x] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
+- [x] Data store: schema v1 (events, bars, trades, orders, fills) + rotation
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-04 19:50:23] pm_tick
+- [2026-02-04 19:55:23] pm_tick
+- [2026-02-04 20:00:24] pm_tick
+- [2026-02-04 20:05:24] pm_tick
+- [2026-02-04 20:10:25] pm_tick
+- [2026-02-04 20:15:25] pm_tick
+- [2026-02-04 20:18:36] test_tick_no_board_touch
+- [2026-02-04 20:20:25] pm_tick
+- [2026-02-04 20:25:26] pm_tick
+- [2026-02-04 20:30:26] pm_tick
+- [2026-02-04 20:33:20] pm_refresh_board
+- [2026-02-04 20:35:26] pm_tick
+- [2026-02-04 20:40:27] pm_tick
+- [2026-02-04 20:45:27] pm_tick
+- [2026-02-04 20:50:28] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+ M docs/board/CHANGELOG.md
+ M docs/board/PROJECT_BOARD.md
+ M docs/handoff/HANDOFF_LOG.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+ M execution/reject_policy.yaml
+ M scripts/handoff_pack_on_demand_v1.sh
+ M scripts/handoff_state_snapshot_v1.sh
+ M scripts/m0_ops_autorestart_v1.sh
+ M scripts/m3_mainline_runner_v1.sh
+ M scripts/mk_windowpack_ultra.sh
+ M scripts/ops_audit_hardgate_v1.sh
+ M scripts/pm_refresh_board.sh
+ M scripts/pm_tick.sh
+ M src/broker/shioaji_recorder.py
+ M src/oms/paper_oms_risk_safety_wrapper_v1.py
+ M src/oms/run_paper_live_v1.py
+ M src/safety/system_safety_v1.py
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+?? docs/bibles/patches/
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md.sha256.txt
+?? docs/ops/OPS_INDEX.md
+?? docs/ops/OPS_INDEX.md.sha256.txt
+?? docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+?? docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
+?? docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+?? docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
+?? docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
+?? docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
+?? docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+?? docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
+?? docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+?? docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
+?? execution/taifex_preflight_v1.py
+?? scripts/build_daily_finance_close_pack_v1.sh
+?? scripts/m3_regression_paper_live_smoke_v1.sh
+?? scripts/m3_regression_taifex_preflight_v1.sh
+?? scripts/m3_regression_taifex_split_v1.sh
+?? scripts/m6_update_project_board_v1.sh
+?? scripts/m8_update_board_from_patches_v1.py
+?? scripts/pm_log_rotate_v1.sh
+?? scripts/pm_refresh_board_v2.py
+?? scripts/run_daily_finance_close_pack_daily_v1.sh
+?? scripts/smoke_all_v1.sh
+?? scripts/verify_pm_refresh_board_v1.sh
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-04 23:17:45] ops_audit_hardgate_v1_20260204_231744
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-04 23:17:33
+- 專案總完成度：0.0% （已完成 0 / 73 項）
+
+**專案總完成度 / Overall completion:** 0.0%（已完成 0 / 73 項；未完成 73 項）
+
+<!-- AUTO:PROGRESS_BEGIN -->
+- **TOTAL_TASKS:** 95
+- **DONE_TASKS:** 14
+- **PCT:** 14.7%
+<!-- AUTO:PROGRESS_END -->
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [~] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+## Milestones
+### M0 Foundations
+- [x] Create repo skeleton + board + bible system + backup framework
+- [x] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
+- [x] Data store: schema v1 (events, bars, trades, orders, fills) + rotation
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-04 19:50:23] pm_tick
+- [2026-02-04 19:55:23] pm_tick
+- [2026-02-04 20:00:24] pm_tick
+- [2026-02-04 20:05:24] pm_tick
+- [2026-02-04 20:10:25] pm_tick
+- [2026-02-04 20:15:25] pm_tick
+- [2026-02-04 20:18:36] test_tick_no_board_touch
+- [2026-02-04 20:20:25] pm_tick
+- [2026-02-04 20:25:26] pm_tick
+- [2026-02-04 20:30:26] pm_tick
+- [2026-02-04 20:33:20] pm_refresh_board
+- [2026-02-04 20:35:26] pm_tick
+- [2026-02-04 20:40:27] pm_tick
+- [2026-02-04 20:45:27] pm_tick
+- [2026-02-04 20:50:28] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+ M docs/board/CHANGELOG.md
+ M docs/board/PROJECT_BOARD.md
+ M docs/handoff/HANDOFF_LOG.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+ M execution/reject_policy.yaml
+ M scripts/handoff_pack_on_demand_v1.sh
+ M scripts/handoff_state_snapshot_v1.sh
+ M scripts/m0_ops_autorestart_v1.sh
+ M scripts/m3_mainline_runner_v1.sh
+ M scripts/mk_windowpack_ultra.sh
+ M scripts/ops_audit_hardgate_v1.sh
+ M scripts/pm_refresh_board.sh
+ M scripts/pm_tick.sh
+ M src/broker/shioaji_recorder.py
+ M src/oms/paper_oms_risk_safety_wrapper_v1.py
+ M src/oms/run_paper_live_v1.py
+ M src/safety/system_safety_v1.py
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+?? docs/bibles/patches/
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md.sha256.txt
+?? docs/ops/OPS_INDEX.md
+?? docs/ops/OPS_INDEX.md.sha256.txt
+?? docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+?? docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
+?? docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+?? docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
+?? docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
+?? docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
+?? docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+?? docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
+?? docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+?? docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
+?? execution/taifex_preflight_v1.py
+?? scripts/build_daily_finance_close_pack_v1.sh
+?? scripts/m3_regression_paper_live_smoke_v1.sh
+?? scripts/m3_regression_taifex_preflight_v1.sh
+?? scripts/m3_regression_taifex_split_v1.sh
+?? scripts/m6_update_project_board_v1.sh
+?? scripts/m8_update_board_from_patches_v1.py
+?? scripts/pm_log_rotate_v1.sh
+?? scripts/pm_refresh_board_v2.py
+?? scripts/run_daily_finance_close_pack_daily_v1.sh
+?? scripts/smoke_all_v1.sh
+?? scripts/verify_pm_refresh_board_v1.sh
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-05 00:33:47] ops_audit_hardgate_v1_20260205_003346
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-05 00:30:33
+- 專案總完成度：0.0% （已完成 0 / 73 項）
+
+**專案總完成度 / Overall completion:** 0.0%（已完成 0 / 73 項；未完成 73 項）
+
+<!-- AUTO:PROGRESS_BEGIN -->
+- **TOTAL_TASKS:** 95
+- **DONE_TASKS:** 14
+- **PCT:** 14.7%
+<!-- AUTO:PROGRESS_END -->
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [~] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+## Milestones
+### M0 Foundations
+- [x] Create repo skeleton + board + bible system + backup framework
+- [x] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
+- [x] Data store: schema v1 (events, bars, trades, orders, fills) + rotation
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-04 19:50:23] pm_tick
+- [2026-02-04 19:55:23] pm_tick
+- [2026-02-04 20:00:24] pm_tick
+- [2026-02-04 20:05:24] pm_tick
+- [2026-02-04 20:10:25] pm_tick
+- [2026-02-04 20:15:25] pm_tick
+- [2026-02-04 20:18:36] test_tick_no_board_touch
+- [2026-02-04 20:20:25] pm_tick
+- [2026-02-04 20:25:26] pm_tick
+- [2026-02-04 20:30:26] pm_tick
+- [2026-02-04 20:33:20] pm_refresh_board
+- [2026-02-04 20:35:26] pm_tick
+- [2026-02-04 20:40:27] pm_tick
+- [2026-02-04 20:45:27] pm_tick
+- [2026-02-04 20:50:28] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+ M docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+ M docs/board/CHANGELOG.md
+ M docs/board/PROJECT_BOARD.md
+ M docs/handoff/HANDOFF_LOG.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+ M docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+ M docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+ M execution/reject_policy.yaml
+ M scripts/handoff_pack_on_demand_v1.sh
+ M scripts/handoff_state_snapshot_v1.sh
+ M scripts/m0_ops_autorestart_v1.sh
+ M scripts/m3_mainline_runner_v1.sh
+ M scripts/mk_windowpack_ultra.sh
+ M scripts/ops_audit_hardgate_v1.sh
+ M scripts/pm_refresh_board.sh
+ M scripts/pm_tick.sh
+ M src/broker/shioaji_recorder.py
+ M src/oms/paper_oms_risk_safety_wrapper_v1.py
+ M src/oms/run_paper_live_v1.py
+ M src/safety/system_safety_v1.py
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+?? docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+?? docs/bibles/patches/
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md.sha256.txt
+?? docs/ops/OPS_INDEX.md
+?? docs/ops/OPS_INDEX.md.sha256.txt
+?? docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+?? docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
+?? docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+?? docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
+?? docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
+?? docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
+?? docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+?? docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
+?? docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+?? docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
+?? execution/taifex_preflight_v1.py
+?? scripts/build_daily_finance_close_pack_v1.sh
+?? scripts/m3_regression_paper_live_smoke_v1.sh
+?? scripts/m3_regression_taifex_preflight_v1.sh
+?? scripts/m3_regression_taifex_split_v1.sh
+?? scripts/m6_update_project_board_v1.sh
+?? scripts/m8_update_board_from_patches_v1.py
+?? scripts/oneshot_hardgate_verify_ultra.py
+?? scripts/pm_log_rotate_v1.sh
+?? scripts/pm_refresh_board_v2.py
+?? scripts/run_daily_finance_close_pack_daily_v1.sh
+?? scripts/smoke_all_v1.sh
+?? scripts/verify_pm_refresh_board_v1.sh
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-05 23:17:48] ops_audit_hardgate_v1_20260205_231746
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-05 23:17:36
+- 專案總完成度：16.7% （已完成 16 / 96 項）
+
+**專案總完成度 / Overall completion:** 16.7%（已完成 16 / 96 項；未完成 80 項）
+
+<!-- AUTO:PROGRESS_BEGIN -->
+- **TOTAL_TASKS:** 96
+- **DONE_TASKS:** 16
+- **PCT:** 16.7%
+<!-- AUTO:PROGRESS_END -->
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [~] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+## Milestones
+### M0 Foundations
+- [x] Create repo skeleton + board + bible system + backup framework
+- [x] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
+- [x] Data store: schema v1 (events, bars, trades, orders, fills) + rotation
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-04 19:50:23] pm_tick
+- [2026-02-04 19:55:23] pm_tick
+- [2026-02-04 20:00:24] pm_tick
+- [2026-02-04 20:05:24] pm_tick
+- [2026-02-04 20:10:25] pm_tick
+- [2026-02-04 20:15:25] pm_tick
+- [2026-02-04 20:18:36] test_tick_no_board_touch
+- [2026-02-04 20:20:25] pm_tick
+- [2026-02-04 20:25:26] pm_tick
+- [2026-02-04 20:30:26] pm_tick
+- [2026-02-04 20:33:20] pm_refresh_board
+- [2026-02-04 20:35:26] pm_tick
+- [2026-02-04 20:40:27] pm_tick
+- [2026-02-04 20:45:27] pm_tick
+- [2026-02-04 20:50:28] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+M  docs/board/CHANGELOG.md
+MM docs/board/PROJECT_BOARD.md
+M  docs/handoff/HANDOFF_LOG.md
+M  docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+M  docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md.sha256.txt
+M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+A  docs/ops/OPS_INDEX.md
+A  docs/ops/OPS_INDEX.md.sha256.txt
+A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
+A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
+A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
+A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
+A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
+A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
+M  execution/reject_policy.yaml
+A  execution/taifex_preflight_v1.py
+ M m3_mainline_runner_v1.sh
+A  scripts/build_daily_finance_close_pack_v1.sh
+M  scripts/handoff_pack_on_demand_v1.sh
+M  scripts/handoff_state_snapshot_v1.sh
+M  scripts/m0_ops_autorestart_v1.sh
+MM scripts/m3_mainline_runner_v1.sh
+AM scripts/m3_regression_paper_live_smoke_v1.sh
+A  scripts/m3_regression_taifex_preflight_v1.sh
+A  scripts/m3_regression_taifex_split_v1.sh
+AM scripts/m6_update_project_board_v1.sh
+A  scripts/m8_update_board_from_patches_v1.py
+M  scripts/mk_windowpack_ultra.sh
+A  scripts/oneshot_hardgate_verify_ultra.py
+M  scripts/ops_audit_hardgate_v1.sh
+A  scripts/ops_seed_bidask_now_v1.py
+M  scripts/paper_live_integration_smoke_v1.sh
+A  scripts/pm_log_rotate_v1.sh
+M  scripts/pm_refresh_board.sh
+AM scripts/pm_refresh_board_v2.py
+M  scripts/pm_tick.sh
+A  scripts/run_daily_finance_close_pack_daily_v1.sh
+A  scripts/run_paper_live_v1.py
+A  scripts/smoke_all_v1.sh
+A  scripts/verify_pm_refresh_board_v1.sh
+MM src/broker/shioaji_recorder.py
+M  src/data/store_sqlite_v1.py
+M  src/market/market_metrics_from_db_v1.py
+M  src/oms/paper_oms_risk_safety_wrapper_v1.py
+MM src/oms/run_paper_live_v1.py
+MM src/safety/system_safety_v1.py
+A  src/sim/run_strategies_paper_v1.py
+A  src/strat/__init__.py
+A  src/strat/mean_reversion_v1.py
+A  src/strat/strategy_base_v1.py
+A  src/strat/trend_v1.py
+?? docs/_inbox/
+?? docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md
+?? docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md.sha256.txt
+?? src/ops/
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-06 10:30:47] ops_audit_hardgate_v1_20260206_103046
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-06 10:26:20
+- 專案總完成度：16.7% （已完成 16 / 96 項）
+
+**專案總完成度 / Overall completion:** 16.7%（已完成 16 / 96 項；未完成 80 項）
+
+<!-- AUTO:PROGRESS_BEGIN -->
+- **TOTAL_TASKS:** 96
+- **DONE_TASKS:** 16
+- **PCT:** 16.7%
+<!-- AUTO:PROGRESS_END -->
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [ ] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+
+
+## Bible Linkage (OFFICIAL-LOCKED)
+
+- Last refresh: 2026-02-06T08:18:13
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-04 19:50:23] pm_tick
+- [2026-02-04 19:55:23] pm_tick
+- [2026-02-04 20:00:24] pm_tick
+- [2026-02-04 20:05:24] pm_tick
+- [2026-02-04 20:10:25] pm_tick
+- [2026-02-04 20:15:25] pm_tick
+- [2026-02-04 20:18:36] test_tick_no_board_touch
+- [2026-02-04 20:20:25] pm_tick
+- [2026-02-04 20:25:26] pm_tick
+- [2026-02-04 20:30:26] pm_tick
+- [2026-02-04 20:33:20] pm_refresh_board
+- [2026-02-04 20:35:26] pm_tick
+- [2026-02-04 20:40:27] pm_tick
+- [2026-02-04 20:45:27] pm_tick
+- [2026-02-04 20:50:28] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+M  docs/board/CHANGELOG.md
+MM docs/board/PROJECT_BOARD.md
+MM docs/handoff/HANDOFF_LOG.md
+MM docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+MM docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md.sha256.txt
+M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+A  docs/ops/OPS_INDEX.md
+A  docs/ops/OPS_INDEX.md.sha256.txt
+A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
+A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
+A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
+A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
+A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
+A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
+M  execution/reject_policy.yaml
+A  execution/taifex_preflight_v1.py
+ M m3_mainline_runner_v1.sh
+ M runtime/handoff/state/latest_state.json
+A  scripts/build_daily_finance_close_pack_v1.sh
+M  scripts/handoff_pack_on_demand_v1.sh
+M  scripts/handoff_state_snapshot_v1.sh
+M  scripts/m0_ops_autorestart_v1.sh
+MM scripts/m3_mainline_runner_v1.sh
+AM scripts/m3_regression_paper_live_smoke_v1.sh
+A  scripts/m3_regression_taifex_preflight_v1.sh
+A  scripts/m3_regression_taifex_split_v1.sh
+AM scripts/m6_update_project_board_v1.sh
+A  scripts/m8_update_board_from_patches_v1.py
+M  scripts/mk_windowpack_ultra.sh
+A  scripts/oneshot_hardgate_verify_ultra.py
+M  scripts/ops_audit_hardgate_v1.sh
+AM scripts/ops_seed_bidask_now_v1.py
+M  scripts/paper_live_integration_smoke_v1.sh
+A  scripts/pm_log_rotate_v1.sh
+M  scripts/pm_refresh_board.sh
+AM scripts/pm_refresh_board_v2.py
+M  scripts/pm_tick.sh
+A  scripts/run_daily_finance_close_pack_daily_v1.sh
+A  scripts/run_paper_live_v1.py
+A  scripts/smoke_all_v1.sh
+A  scripts/verify_pm_refresh_board_v1.sh
+MM src/broker/shioaji_recorder.py
+M  src/data/store_sqlite_v1.py
+M  src/market/market_metrics_from_db_v1.py
+MM src/oms/paper_oms_risk_safety_wrapper_v1.py
+MM src/oms/run_paper_live_v1.py
+MM src/safety/system_safety_v1.py
+A  src/sim/run_strategies_paper_v1.py
+A  src/strat/__init__.py
+A  src/strat/mean_reversion_v1.py
+A  src/strat/strategy_base_v1.py
+A  src/strat/trend_v1.py
+?? docs/_inbox/
+?? docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md
+?? docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md.sha256.txt
+?? docs/board/BIBLES_INDEX_v18x.json
+?? docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md
+?? docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md.sha256.txt
+?? scripts/ops_backup_repo_to_external_v1.sh
+?? src/ops/
+?? src/sim/run_strategies_paper_loop_v1.py
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-06 23:45:43] ops_audit_hardgate_v1_20260206_234542
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-06 23:44:56
+- 專案總完成度：21.9% （已完成 23 / 105 項）
+
+**專案總完成度 / Overall completion:** 21.9%（已完成 23 / 105 項；未完成 82 項）
+
+<!-- AUTO:PROGRESS_BEGIN -->
+- **TOTAL_TASKS:** 105
+- **DONE_TASKS:** 23
+- **PCT:** 21.9%
+<!-- AUTO:PROGRESS_END -->
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [ ] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+
+
+## Bible Linkage (OFFICIAL-LOCKED)
+
+- Last refresh: 2026-02-06T08:18:13
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-04 19:50:23] pm_tick
+- [2026-02-04 19:55:23] pm_tick
+- [2026-02-04 20:00:24] pm_tick
+- [2026-02-04 20:05:24] pm_tick
+- [2026-02-04 20:10:25] pm_tick
+- [2026-02-04 20:15:25] pm_tick
+- [2026-02-04 20:18:36] test_tick_no_board_touch
+- [2026-02-04 20:20:25] pm_tick
+- [2026-02-04 20:25:26] pm_tick
+- [2026-02-04 20:30:26] pm_tick
+- [2026-02-04 20:33:20] pm_refresh_board
+- [2026-02-04 20:35:26] pm_tick
+- [2026-02-04 20:40:27] pm_tick
+- [2026-02-04 20:45:27] pm_tick
+- [2026-02-04 20:50:28] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+M  docs/board/CHANGELOG.md
+MM docs/board/PROJECT_BOARD.md
+MM docs/handoff/HANDOFF_LOG.md
+MM docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+MM docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md.sha256.txt
+M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+AM docs/ops/OPS_INDEX.md
+A  docs/ops/OPS_INDEX.md.sha256.txt
+A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
+A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
+A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
+A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
+A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
+A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
+M  execution/reject_policy.yaml
+A  execution/taifex_preflight_v1.py
+ M m3_mainline_runner_v1.sh
+ M runtime/handoff/state/latest_state.json
+A  scripts/build_daily_finance_close_pack_v1.sh
+M  scripts/handoff_pack_on_demand_v1.sh
+M  scripts/handoff_state_snapshot_v1.sh
+M  scripts/m0_ops_autorestart_v1.sh
+MM scripts/m3_mainline_runner_v1.sh
+AM scripts/m3_regression_paper_live_smoke_v1.sh
+A  scripts/m3_regression_taifex_preflight_v1.sh
+A  scripts/m3_regression_taifex_split_v1.sh
+AM scripts/m6_update_project_board_v1.sh
+A  scripts/m8_update_board_from_patches_v1.py
+M  scripts/mk_windowpack_ultra.sh
+A  scripts/oneshot_hardgate_verify_ultra.py
+M  scripts/ops_audit_hardgate_v1.sh
+AM scripts/ops_seed_bidask_now_v1.py
+M  scripts/paper_live_integration_smoke_v1.sh
+A  scripts/pm_log_rotate_v1.sh
+M  scripts/pm_refresh_board.sh
+AM scripts/pm_refresh_board_v2.py
+M  scripts/pm_tick.sh
+A  scripts/run_daily_finance_close_pack_daily_v1.sh
+A  scripts/run_paper_live_v1.py
+A  scripts/smoke_all_v1.sh
+A  scripts/verify_pm_refresh_board_v1.sh
+MM src/broker/shioaji_recorder.py
+ M src/data/build_bars_1m_v1.py
+M  src/data/store_sqlite_v1.py
+MM src/market/market_metrics_from_db_v1.py
+MM src/oms/paper_oms_risk_safety_wrapper_v1.py
+ M src/oms/paper_oms_v1.py
+MM src/oms/run_paper_live_v1.py
+ M src/risk/risk_engine_v1.py
+MM src/safety/system_safety_v1.py
+A  src/sim/run_strategies_paper_v1.py
+A  src/strat/__init__.py
+AM src/strat/mean_reversion_v1.py
+A  src/strat/strategy_base_v1.py
+AM src/strat/trend_v1.py
+?? docs/_inbox/
+?? docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md
+?? docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md.sha256.txt
+?? docs/board/BIBLES_INDEX_v18x.json
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260206_161001.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260206_161001.md.sha256.txt
+?? docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md
+?? docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md.sha256.txt
+?? scripts/ops_backup_repo_to_external_v1.sh
+?? src/ops/
+?? src/sim/run_strategies_paper_loop_v1.py
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-07 13:47:14] ops_audit_hardgate_v1_20260207_134713
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-07 13:46:00
+- 專案總完成度：22.6% （已完成 24 / 106 項）
+
+**專案總完成度 / Overall completion:** 22.6%（已完成 24 / 106 項；未完成 82 項）
+
+<!-- AUTO:PROGRESS_BEGIN -->
+- **TOTAL_TASKS:** 106
+- **DONE_TASKS:** 24
+- **PCT:** 22.6%
+<!-- AUTO:PROGRESS_END -->
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [ ] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+
+
+## Bible Linkage (OFFICIAL-LOCKED)
+
+- Last refresh: 2026-02-06T08:18:13
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-04 19:50:23] pm_tick
+- [2026-02-04 19:55:23] pm_tick
+- [2026-02-04 20:00:24] pm_tick
+- [2026-02-04 20:05:24] pm_tick
+- [2026-02-04 20:10:25] pm_tick
+- [2026-02-04 20:15:25] pm_tick
+- [2026-02-04 20:18:36] test_tick_no_board_touch
+- [2026-02-04 20:20:25] pm_tick
+- [2026-02-04 20:25:26] pm_tick
+- [2026-02-04 20:30:26] pm_tick
+- [2026-02-04 20:33:20] pm_refresh_board
+- [2026-02-04 20:35:26] pm_tick
+- [2026-02-04 20:40:27] pm_tick
+- [2026-02-04 20:45:27] pm_tick
+- [2026-02-04 20:50:28] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+A  "docs/_inbox/tmf_autotrader\345\260\210\346\241\210 - \346\206\262\346\263\225\347\264\232\350\246\217\347\257\204.rtf"
+A  docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md
+A  docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md.sha256.txt
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+A  docs/board/BIBLES_INDEX_v18x.json
+M  docs/board/CHANGELOG.md
+MM docs/board/PROJECT_BOARD.md
+M  docs/handoff/HANDOFF_LOG.md
+M  docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+M  docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260206_161001.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260206_161001.md.sha256.txt
+A  docs/ops/HEALTH_CHECKS_KIND_AND_SMOKE_SUITE_BIBLE_v1.md
+A  docs/ops/HEALTH_CHECKS_KIND_AND_SMOKE_SUITE_BIBLE_v1.md.sha256.txt
+M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+A  docs/ops/OPS_INDEX.md
+A  docs/ops/OPS_INDEX.md.sha256.txt
+A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
+A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
+A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
+A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
+A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
+A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
+A  docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md
+A  docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md.sha256.txt
+M  execution/reject_policy.yaml
+A  execution/taifex_preflight_v1.py
+M  m3_mainline_runner_v1.sh
+M  runtime/handoff/state/latest_state.json
+A  scripts/build_daily_finance_close_pack_v1.sh
+M  scripts/handoff_pack_on_demand_v1.sh
+M  scripts/handoff_state_snapshot_v1.sh
+M  scripts/m0_ops_autorestart_v1.sh
+A  scripts/m2_regression_healthchecks_kind_v1.sh
+M  scripts/m3_mainline_runner_v1.sh
+A  scripts/m3_regression_paper_live_smoke_v1.sh
+A  scripts/m3_regression_taifex_preflight_v1.sh
+A  scripts/m3_regression_taifex_split_v1.sh
+A  scripts/m6_update_project_board_v1.sh
+A  scripts/m8_update_board_from_patches_v1.py
+M  scripts/mk_windowpack_ultra.sh
+A  scripts/oneshot_hardgate_verify_ultra.py
+M  scripts/ops_audit_hardgate_v1.sh
+A  scripts/ops_backup_repo_to_external_v1.sh
+A  scripts/ops_seed_bidask_now_v1.py
+M  scripts/paper_live_integration_smoke_v1.sh
+A  scripts/pm_log_rotate_v1.sh
+M  scripts/pm_refresh_board.sh
+A  scripts/pm_refresh_board_v2.py
+M  scripts/pm_tick.sh
+A  scripts/run_daily_finance_close_pack_daily_v1.sh
+A  scripts/run_paper_live_smoke_suite_v1.py
+A  scripts/run_paper_live_v1.py
+A  scripts/smoke_all_v1.sh
+A  scripts/verify_pm_refresh_board_v1.sh
+M  src/broker/shioaji_recorder.py
+M  src/data/build_bars_1m_v1.py
+M  src/data/store_sqlite_v1.py
+M  src/market/market_metrics_from_db_v1.py
+M  src/oms/paper_oms_risk_safety_wrapper_v1.py
+M  src/oms/paper_oms_v1.py
+M  src/oms/run_paper_live_v1.py
+A  src/ops/board_mark_doing_v1.py
+A  src/ops/require_bibles_v1.py
+M  src/risk/risk_engine_v1.py
+M  src/safety/system_safety_v1.py
+A  src/sim/run_strategies_paper_loop_v1.py
+A  src/sim/run_strategies_paper_v1.py
+A  src/strat/__init__.py
+A  src/strat/mean_reversion_v1.py
+A  src/strat/strategy_base_v1.py
+A  src/strat/trend_v1.py
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-07 13:48:20] ops_audit_hardgate_v1_20260207_134819
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-07 13:46:00
+- 專案總完成度：22.6% （已完成 24 / 106 項）
+
+**專案總完成度 / Overall completion:** 22.6%（已完成 24 / 106 項；未完成 82 項）
+
+<!-- AUTO:PROGRESS_BEGIN -->
+- **TOTAL_TASKS:** 106
+- **DONE_TASKS:** 24
+- **PCT:** 22.6%
+<!-- AUTO:PROGRESS_END -->
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [ ] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+
+
+## Bible Linkage (OFFICIAL-LOCKED)
+
+- Last refresh: 2026-02-06T08:18:13
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-04 19:50:23] pm_tick
+- [2026-02-04 19:55:23] pm_tick
+- [2026-02-04 20:00:24] pm_tick
+- [2026-02-04 20:05:24] pm_tick
+- [2026-02-04 20:10:25] pm_tick
+- [2026-02-04 20:15:25] pm_tick
+- [2026-02-04 20:18:36] test_tick_no_board_touch
+- [2026-02-04 20:20:25] pm_tick
+- [2026-02-04 20:25:26] pm_tick
+- [2026-02-04 20:30:26] pm_tick
+- [2026-02-04 20:33:20] pm_refresh_board
+- [2026-02-04 20:35:26] pm_tick
+- [2026-02-04 20:40:27] pm_tick
+- [2026-02-04 20:45:27] pm_tick
+- [2026-02-04 20:50:28] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+A  "docs/_inbox/tmf_autotrader\345\260\210\346\241\210 - \346\206\262\346\263\225\347\264\232\350\246\217\347\257\204.rtf"
+A  docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md
+A  docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md.sha256.txt
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+A  docs/board/BIBLES_INDEX_v18x.json
+M  docs/board/CHANGELOG.md
+MM docs/board/PROJECT_BOARD.md
+MM docs/handoff/HANDOFF_LOG.md
+MM docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+MM docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260206_161001.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260206_161001.md.sha256.txt
+A  docs/ops/HEALTH_CHECKS_KIND_AND_SMOKE_SUITE_BIBLE_v1.md
+A  docs/ops/HEALTH_CHECKS_KIND_AND_SMOKE_SUITE_BIBLE_v1.md.sha256.txt
+M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+A  docs/ops/OPS_INDEX.md
+A  docs/ops/OPS_INDEX.md.sha256.txt
+A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
+A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
+A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
+A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
+A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
+A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
+A  docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md
+A  docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md.sha256.txt
+M  execution/reject_policy.yaml
+A  execution/taifex_preflight_v1.py
+M  m3_mainline_runner_v1.sh
+M  runtime/handoff/state/latest_state.json
+A  scripts/build_daily_finance_close_pack_v1.sh
+M  scripts/handoff_pack_on_demand_v1.sh
+M  scripts/handoff_state_snapshot_v1.sh
+M  scripts/m0_ops_autorestart_v1.sh
+A  scripts/m2_regression_healthchecks_kind_v1.sh
+M  scripts/m3_mainline_runner_v1.sh
+A  scripts/m3_regression_paper_live_smoke_v1.sh
+A  scripts/m3_regression_taifex_preflight_v1.sh
+A  scripts/m3_regression_taifex_split_v1.sh
+A  scripts/m6_update_project_board_v1.sh
+A  scripts/m8_update_board_from_patches_v1.py
+M  scripts/mk_windowpack_ultra.sh
+A  scripts/oneshot_hardgate_verify_ultra.py
+M  scripts/ops_audit_hardgate_v1.sh
+A  scripts/ops_backup_repo_to_external_v1.sh
+A  scripts/ops_seed_bidask_now_v1.py
+M  scripts/paper_live_integration_smoke_v1.sh
+A  scripts/pm_log_rotate_v1.sh
+M  scripts/pm_refresh_board.sh
+A  scripts/pm_refresh_board_v2.py
+M  scripts/pm_tick.sh
+A  scripts/run_daily_finance_close_pack_daily_v1.sh
+A  scripts/run_paper_live_smoke_suite_v1.py
+A  scripts/run_paper_live_v1.py
+A  scripts/smoke_all_v1.sh
+A  scripts/verify_pm_refresh_board_v1.sh
+M  src/broker/shioaji_recorder.py
+M  src/data/build_bars_1m_v1.py
+M  src/data/store_sqlite_v1.py
+M  src/market/market_metrics_from_db_v1.py
+M  src/oms/paper_oms_risk_safety_wrapper_v1.py
+M  src/oms/paper_oms_v1.py
+M  src/oms/run_paper_live_v1.py
+A  src/ops/board_mark_doing_v1.py
+A  src/ops/require_bibles_v1.py
+M  src/risk/risk_engine_v1.py
+M  src/safety/system_safety_v1.py
+A  src/sim/run_strategies_paper_loop_v1.py
+A  src/sim/run_strategies_paper_v1.py
+A  src/strat/__init__.py
+A  src/strat/mean_reversion_v1.py
+A  src/strat/strategy_base_v1.py
+A  src/strat/trend_v1.py
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-08 11:23:42] ops_audit_hardgate_v1_20260208_112340
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-08 11:23:39
+- 專案總完成度：23.4% （已完成 25 / 107 項）
+
+**專案總完成度 / Overall completion:** 23.4%（已完成 25 / 107 項；未完成 82 項）
+
+<!-- AUTO:PROGRESS_BEGIN -->
+- **TOTAL_TASKS:** 107
+- **DONE_TASKS:** 25
+- **PCT:** 23.4%
+<!-- AUTO:PROGRESS_END -->
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [ ] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+
+
+## Bible Linkage (OFFICIAL-LOCKED)
+
+- Last refresh: 2026-02-06T08:18:13
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-04 19:50:23] pm_tick
+- [2026-02-04 19:55:23] pm_tick
+- [2026-02-04 20:00:24] pm_tick
+- [2026-02-04 20:05:24] pm_tick
+- [2026-02-04 20:10:25] pm_tick
+- [2026-02-04 20:15:25] pm_tick
+- [2026-02-04 20:18:36] test_tick_no_board_touch
+- [2026-02-04 20:20:25] pm_tick
+- [2026-02-04 20:25:26] pm_tick
+- [2026-02-04 20:30:26] pm_tick
+- [2026-02-04 20:33:20] pm_refresh_board
+- [2026-02-04 20:35:26] pm_tick
+- [2026-02-04 20:40:27] pm_tick
+- [2026-02-04 20:45:27] pm_tick
+- [2026-02-04 20:50:28] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+A  "docs/_inbox/tmf_autotrader\345\260\210\346\241\210 - \346\206\262\346\263\225\347\264\232\350\246\217\347\257\204.rtf"
+A  docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md
+A  docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md.sha256.txt
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+A  docs/board/BIBLES_INDEX_v18x.json
+M  docs/board/CHANGELOG.md
+MM docs/board/PROJECT_BOARD.md
+MM docs/handoff/HANDOFF_LOG.md
+MM docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+MM docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260206_161001.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260206_161001.md.sha256.txt
+A  docs/ops/HEALTH_CHECKS_KIND_AND_SMOKE_SUITE_BIBLE_v1.md
+A  docs/ops/HEALTH_CHECKS_KIND_AND_SMOKE_SUITE_BIBLE_v1.md.sha256.txt
+M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+AM docs/ops/OPS_INDEX.md
+A  docs/ops/OPS_INDEX.md.sha256.txt
+A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
+A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
+A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
+A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
+A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
+A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
+AM docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md
+A  docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md.sha256.txt
+M  execution/reject_policy.yaml
+A  execution/taifex_preflight_v1.py
+M  m3_mainline_runner_v1.sh
+M  runtime/handoff/state/latest_state.json
+A  scripts/build_daily_finance_close_pack_v1.sh
+ M scripts/gen_new_window_opening_prompt_ultra_zh.py
+M  scripts/handoff_pack_on_demand_v1.sh
+M  scripts/handoff_state_snapshot_v1.sh
+M  scripts/m0_ops_autorestart_v1.sh
+A  scripts/m2_regression_healthchecks_kind_v1.sh
+M  scripts/m3_mainline_runner_v1.sh
+A  scripts/m3_regression_paper_live_smoke_v1.sh
+A  scripts/m3_regression_taifex_preflight_v1.sh
+A  scripts/m3_regression_taifex_split_v1.sh
+A  scripts/m6_update_project_board_v1.sh
+A  scripts/m8_update_board_from_patches_v1.py
+M  scripts/mk_windowpack_ultra.sh
+A  scripts/oneshot_hardgate_verify_ultra.py
+M  scripts/ops_audit_hardgate_v1.sh
+A  scripts/ops_backup_repo_to_external_v1.sh
+A  scripts/ops_seed_bidask_now_v1.py
+M  scripts/paper_live_integration_smoke_v1.sh
+A  scripts/pm_log_rotate_v1.sh
+M  scripts/pm_refresh_board.sh
+A  scripts/pm_refresh_board_v2.py
+M  scripts/pm_tick.sh
+A  scripts/run_daily_finance_close_pack_daily_v1.sh
+AM scripts/run_paper_live_smoke_suite_v1.py
+A  scripts/run_paper_live_v1.py
+A  scripts/smoke_all_v1.sh
+A  scripts/verify_pm_refresh_board_v1.sh
+MM src/broker/shioaji_recorder.py
+M  src/data/build_bars_1m_v1.py
+M  src/data/store_sqlite_v1.py
+M  src/market/market_metrics_from_db_v1.py
+MM src/oms/paper_oms_risk_safety_wrapper_v1.py
+M  src/oms/paper_oms_v1.py
+MM src/oms/run_paper_live_v1.py
+A  src/ops/board_mark_doing_v1.py
+A  src/ops/require_bibles_v1.py
+M  src/risk/risk_engine_v1.py
+MM src/safety/system_safety_v1.py
+AM src/sim/run_strategies_paper_loop_v1.py
+AM src/sim/run_strategies_paper_v1.py
+A  src/strat/__init__.py
+AM src/strat/mean_reversion_v1.py
+A  src/strat/strategy_base_v1.py
+AM src/strat/trend_v1.py
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260207_161204.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260207_161204.md.sha256.txt
+?? docs/ops/POWER_POLICY_STAGE_v1.md
+?? docs/ops/POWER_POLICY_STAGE_v1.md.sha256.txt
+?? scripts/m3_regression_paper_live_smoke_combo_v1.sh
+?? scripts/m3_regression_spec_diff_stopper_v1.sh
+?? scripts/m3_regression_suite_v1.sh
+?? snapshots/m3/
+?? src/execution/
+?? src/tools/
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+
+
+## [2026-02-08 21:54:22] ops_audit_hardgate_v1_20260208_215420
+
+### Board (head)
+
+```text
+# 專案進度總覽（自動計算）
+- 更新時間：2026-02-08 21:54:15
+- 專案總完成度：23.4% （已完成 25 / 107 項）
+
+**專案總完成度 / Overall completion:** 23.4%（已完成 25 / 107 項；未完成 82 項）
+
+<!-- AUTO:PROGRESS_BEGIN -->
+- **TOTAL_TASKS:** 107
+- **DONE_TASKS:** 25
+- **PCT:** 23.4%
+<!-- AUTO:PROGRESS_END -->
+
+## 里程碑完成度
+- M0 Foundations：100.0% （已完成 4 / 4）
+- M1 Sim + Cost Model：100.0% （已完成 3 / 3）
+- M2 Risk Engine v1 (Risk First)：100.0% （已完成 3 / 3）
+- M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
+
+## 說明（快速讀法）
+- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
+- [ ] 進行中、[!] 阻塞、[x] 已完成。
+
+# TMF AutoTrader Project Board (OFFICIAL)
+
+## Status Legend
+- [ ] TODO
+- [~] DOING
+- [x] DONE
+- [!] BLOCKED
+
+
+
+## Bible Linkage (OFFICIAL-LOCKED)
+
+- Last refresh: 2026-02-06T08:18:13
+```
+
+### Changelog (tail)
+
+```text
+- [2026-02-04 19:50:23] pm_tick
+- [2026-02-04 19:55:23] pm_tick
+- [2026-02-04 20:00:24] pm_tick
+- [2026-02-04 20:05:24] pm_tick
+- [2026-02-04 20:10:25] pm_tick
+- [2026-02-04 20:15:25] pm_tick
+- [2026-02-04 20:18:36] test_tick_no_board_touch
+- [2026-02-04 20:20:25] pm_tick
+- [2026-02-04 20:25:26] pm_tick
+- [2026-02-04 20:30:26] pm_tick
+- [2026-02-04 20:33:20] pm_refresh_board
+- [2026-02-04 20:35:26] pm_tick
+- [2026-02-04 20:40:27] pm_tick
+- [2026-02-04 20:45:27] pm_tick
+- [2026-02-04 20:50:28] pm_tick
+```
+
+### Working tree (git status --porcelain)
+
+```text
+A  "docs/_inbox/tmf_autotrader\345\260\210\346\241\210 - \346\206\262\346\263\225\347\264\232\350\246\217\347\257\204.rtf"
+A  docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md
+A  docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md.sha256.txt
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
+A  docs/board/BIBLES_INDEX_v18x.json
+M  docs/board/CHANGELOG.md
+MM docs/board/PROJECT_BOARD.md
+MM docs/handoff/HANDOFF_LOG.md
+MM docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
+MM docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260206_161001.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260206_161001.md.sha256.txt
+A  docs/ops/HEALTH_CHECKS_KIND_AND_SMOKE_SUITE_BIBLE_v1.md
+A  docs/ops/HEALTH_CHECKS_KIND_AND_SMOKE_SUITE_BIBLE_v1.md.sha256.txt
+M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
+M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
+AM docs/ops/OPS_INDEX.md
+A  docs/ops/OPS_INDEX.md.sha256.txt
+A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
+A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
+A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
+A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
+A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
+A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
+AM docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md
+A  docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md.sha256.txt
+M  execution/reject_policy.yaml
+A  execution/taifex_preflight_v1.py
+M  m3_mainline_runner_v1.sh
+MM runtime/handoff/state/latest_state.json
+A  scripts/build_daily_finance_close_pack_v1.sh
+ M scripts/gen_new_window_opening_prompt_ultra_zh.py
+M  scripts/handoff_pack_on_demand_v1.sh
+M  scripts/handoff_state_snapshot_v1.sh
+M  scripts/m0_ops_autorestart_v1.sh
+A  scripts/m2_regression_healthchecks_kind_v1.sh
+M  scripts/m3_mainline_runner_v1.sh
+A  scripts/m3_regression_paper_live_smoke_v1.sh
+A  scripts/m3_regression_taifex_preflight_v1.sh
+A  scripts/m3_regression_taifex_split_v1.sh
+A  scripts/m6_update_project_board_v1.sh
+A  scripts/m8_update_board_from_patches_v1.py
+M  scripts/mk_windowpack_ultra.sh
+A  scripts/oneshot_hardgate_verify_ultra.py
+M  scripts/ops_audit_hardgate_v1.sh
+A  scripts/ops_backup_repo_to_external_v1.sh
+A  scripts/ops_seed_bidask_now_v1.py
+M  scripts/paper_live_integration_smoke_v1.sh
+A  scripts/pm_log_rotate_v1.sh
+M  scripts/pm_refresh_board.sh
+A  scripts/pm_refresh_board_v2.py
+M  scripts/pm_tick.sh
+A  scripts/run_daily_finance_close_pack_daily_v1.sh
+AM scripts/run_paper_live_smoke_suite_v1.py
+A  scripts/run_paper_live_v1.py
+A  scripts/smoke_all_v1.sh
+A  scripts/verify_pm_refresh_board_v1.sh
+MM src/broker/shioaji_recorder.py
+M  src/data/build_bars_1m_v1.py
+M  src/data/store_sqlite_v1.py
+M  src/market/market_metrics_from_db_v1.py
+MM src/oms/paper_oms_risk_safety_wrapper_v1.py
+M  src/oms/paper_oms_v1.py
+MM src/oms/run_paper_live_v1.py
+A  src/ops/board_mark_doing_v1.py
+A  src/ops/require_bibles_v1.py
+M  src/risk/risk_engine_v1.py
+MM src/safety/system_safety_v1.py
+AM src/sim/run_strategies_paper_loop_v1.py
+AM src/sim/run_strategies_paper_v1.py
+A  src/strat/__init__.py
+AM src/strat/mean_reversion_v1.py
+A  src/strat/strategy_base_v1.py
+AM src/strat/trend_v1.py
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260207_161204.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260207_161204.md.sha256.txt
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260208_161001.md
+?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260208_161001.md.sha256.txt
+?? docs/ops/POWER_POLICY_STAGE_v1.md
+?? docs/ops/POWER_POLICY_STAGE_v1.md.sha256.txt
+?? scripts/m3_regression_paper_live_smoke_combo_v1.sh
+?? scripts/m3_regression_spec_diff_stopper_v1.sh
+?? scripts/m3_regression_suite_v1.sh
+?? scripts/ops_seed_tick_now_v1.py
+?? snapshots/m3/
+?? src/execution/
+?? src/tools/
+```
+
+### Next terminal step (head)
+
+```text
+#!/bin/bash
+set -euo pipefail
+cd "$HOME/tmf_autotrader"
+
+# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
+# Updated: 2026-02-02 22:35:51
+#
+# Goal:
+#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
+#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
+#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
+#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
+```
+

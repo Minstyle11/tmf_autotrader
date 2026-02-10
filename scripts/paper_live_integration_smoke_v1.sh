@@ -12,6 +12,7 @@ echo "=== [paper-live integration smoke v1] start $(date -Iseconds) ===" | tee -
 TMPD="$(mktemp -d -t tmf_paper_live_smoke.XXXXXX)"
 DB="$TMPD/tmf_autotrader_smoke.sqlite3"
 echo "[INFO] smoke tmpdb: $DB" | tee -a "$LOG"
+echo "[INFO] tmpdb kept at: $DB" | tee -a "$LOG"
 
 # 0) init fresh db (no production pollution)
 python3 - "$DB" <<'PY_INIT' 2>&1 | tee -a "$LOG"
@@ -86,6 +87,16 @@ PY_SEED
 
 # 1) runner must compile + run (point to tmpdb)
 python3 -m py_compile src/oms/run_paper_live_v1.py 2>&1 | tee -a "$LOG"
+# --- AUTO-SEED LIVE BIDASK NOW (smoke hardening) ---
+# Ensure live DB has a FRESH non-synthetic bidask right before paper-live,
+# and clear cooldown so stale from previous run doesn't cascade.
+SEED_DB="runtime/data/tmf_autotrader_v1.sqlite3"
+SEED_CODE="${TMF_FOP_CODE:-TMFB6}"
+SEED_BID="${TMF_SEED_BID:-31774}"
+SEED_ASK="${TMF_SEED_ASK:-31775}"
+python3 scripts/ops_seed_bidask_now_v1.py --db "$SEED_DB" --code "$SEED_CODE" --bid "$SEED_BID" --ask "$SEED_ASK" --clear-cooldown=1
+# --- END AUTO-SEED ---
+
 python3 src/oms/run_paper_live_v1.py --db "$DB" 2>&1 | tee -a "$LOG"
 
 # 2) DB assertions: must have (a) at least one FILLED order, (b) at least one REJECTED with meta_json.risk_verdict.code

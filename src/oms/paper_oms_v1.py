@@ -17,6 +17,14 @@ FEE_PER_SIDE_BY_SYMBOL = {
     "TXF": 0.0,
 }
 
+def _base_symbol(sym: str) -> str:
+    # allow_symbols are prefixes (TMF/TXF/MXF). Rolling codes like TMFB6 should map to TMF.
+    s = str(sym or "")
+    for b in ("TMF","TXF","MXF"):
+        if s.startswith(b):
+            return b
+    return s
+
 def _now_ms() -> str:
     return datetime.now().isoformat(timespec="milliseconds")
 
@@ -108,10 +116,10 @@ class PaperOMS:
 
     # --- Cost helpers (per-side) ---
     def _per_side_cost(self, symbol: str, price: float, qty: float) -> tuple[float,float]:
-        mult = MULTIPLIER_BY_SYMBOL.get(symbol, 1.0)
+        mult = MULTIPLIER_BY_SYMBOL.get(_base_symbol(symbol), 1.0)
         notional = float(price) * float(mult) * float(qty)
         tax = notional * TAX_RATE_EQUITY_FUTURES
-        fee = float(FEE_PER_SIDE_BY_SYMBOL.get(symbol, 0.0)) * float(qty)
+        fee = float(FEE_PER_SIDE_BY_SYMBOL.get(_base_symbol(symbol), 0.0)) * float(qty)
         return fee, tax
 
     # --- Public API ---
@@ -137,6 +145,14 @@ class PaperOMS:
         return o
 
     def match(self, order: Order, *, market_price: float, liquidity_qty: Optional[float]=None, reason: str="match") -> list[Fill]:
+        # HARDGUARD: PaperOMSRiskSafetyWrapperV1 returns dict on REJECTED, Order on accepted.
+        # If caller accidentally passes the REJECT dict here, fail-fast with a clear error.
+        if not isinstance(order, Order):
+            raise TypeError(
+                f"PaperOMS.match expects Order; got {type(order)}. "
+                "Did you pass a REJECTED dict from PaperOMSRiskSafetyWrapperV1.place_order()?"
+            )
+
         """Return fills (may be empty). Very conservative matching.
         - MARKET: fill immediately at market_price
         - LIMIT: BUY fills if market_price <= limit; SELL fills if market_price >= limit
@@ -197,8 +213,34 @@ class PaperOMS:
 
     def _apply_fill_to_position_and_trade(self, f: Fill):
         sym = f.symbol
-        mult = MULTIPLIER_BY_SYMBOL.get(sym, 1.0)
+        mult = MULTIPLIER_BY_SYMBOL.get(_base_symbol(sym), 1.0)
         pos = self.pos.get(sym) or Position(symbol=sym)
+        # BOOTSTRAP_FROM_DB_OPEN_TRADE:
+        # PaperOMS position/trade book is in-memory; when running in a new process,
+        # reload the latest open trade from DB to avoid treating close fills as new opens.
+        if pos.qty == 0.0:
+            con = self._con()
+            try:
+                row = con.execute(
+                    "SELECT side, qty, entry, open_ts FROM trades WHERE symbol=? AND close_ts IS NULL ORDER BY id DESC LIMIT 1",
+                    (sym,),
+                ).fetchone()
+            finally:
+                con.close()
+            if row:
+                try:
+                    db_side = str(row[0] or "")
+                    db_qty  = float(row[1] or 0.0)
+                    db_entry= float(row[2] or 0.0)
+                    db_open = str(row[3] or "")
+                    if db_qty > 0 and db_entry > 0 and db_side in ("LONG","SHORT"):
+                        pos.qty = db_qty
+                        pos.side = db_side
+                        pos.avg_price = db_entry
+                        pos.open_ts = db_open
+                except Exception:
+                    pass
+
         self.pos[sym] = pos
 
         side = f.side  # BUY/SELL

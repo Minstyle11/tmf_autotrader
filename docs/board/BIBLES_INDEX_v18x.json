@@ -1,0 +1,269 @@
+{
+  "generated_at": "2026-02-06T08:18:13",
+  "bibles": [
+    {
+      "path": "docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md",
+      "sha256": "37510ad07149bb96fdd89c1e245cafc6dc4cef9cb9e53954920b94f19a9638da",
+      "head": "# TMF AutoTrader 量化交易開發聖經（OFFICIAL-LOCKED v18 ULTIMATE — One-Doc, One-Truth, One-OS）",
+      "headings_count": 303,
+      "headings_sample": [
+        {
+          "level": 1,
+          "title": "TMF AutoTrader 量化交易開發聖經（OFFICIAL-LOCKED v18 ULTIMATE — One-Doc, One-Truth, One-OS）"
+        },
+        {
+          "level": 1,
+          "title": "0) 終極承諾（v18 的“終極”定義）"
+        },
+        {
+          "level": 1,
+          "title": "1) v18 最高硬規則（Non‑Negotiables）"
+        },
+        {
+          "level": 1,
+          "title": "2) 系統 OS 全景（v18 目錄式心智模型）"
+        },
+        {
+          "level": 1,
+          "title": "PART A — Market/Exchange OS（TAIFEX：規則、時段、換月）"
+        },
+        {
+          "level": 2,
+          "title": "3) TAIFEX HARD CONSTRAINTS（必須照 v15/v16 的方式工程化）"
+        },
+        {
+          "level": 2,
+          "title": "4) Trading/Session/Expiry/Roll Calendar OS（v17）"
+        },
+        {
+          "level": 3,
+          "title": "4.1 必做"
+        },
+        {
+          "level": 3,
+          "title": "4.2 Roll Mode 的“終極規則”"
+        },
+        {
+          "level": 1,
+          "title": "PART B — Broker OS（永豐 Shioaji：事件、回報、合規）"
+        },
+        {
+          "level": 2,
+          "title": "5) BrokerAdapter 單一入口（v14+）"
+        },
+        {
+          "level": 2,
+          "title": "6) Broker Truth & Account State OS（新增）"
+        },
+        {
+          "level": 3,
+          "title": "6.1 必做：Account Snapshot"
+        },
+        {
+          "level": 3,
+          "title": "6.2 Gate"
+        },
+        {
+          "level": 1,
+          "title": "PART C — Execution OS（意圖→可執行序列→回報狀態機）"
+        },
+        {
+          "level": 2,
+          "title": "7) OrderIntent Contract（策略層不可直接下單）"
+        },
+        {
+          "level": 2,
+          "title": "8) Execution State Machine（必須完整）"
+        },
+        {
+          "level": 2,
+          "title": "9) Execution Guard Rails（最終補強）"
+        },
+        {
+          "level": 3,
+          "title": "9.1 Rate Limiting / Storm Control"
+        },
+        {
+          "level": 3,
+          "title": "9.2 Price/Tick Guard"
+        }
+      ]
+    },
+    {
+      "path": "docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md",
+      "sha256": "e4f51bf4a691987d343e53575244b6da13e5ef4cc20867b7e039e3370f377b71",
+      "head": "# TMF AutoTrader OFFICIAL PATCH（v18.1）— 統計嚴謹性 × 在地交易所硬約束 × 自主學習安全護欄（One-Truth 延伸）",
+      "headings_count": 25,
+      "headings_sample": [
+        {
+          "level": 1,
+          "title": "TMF AutoTrader OFFICIAL PATCH（v18.1）— 統計嚴謹性 × 在地交易所硬約束 × 自主學習安全護欄（One-Truth 延伸）"
+        },
+        {
+          "level": 2,
+          "title": "A) 研究/回測：統計嚴謹性「硬闖關」補強（必做）"
+        },
+        {
+          "level": 3,
+          "title": "A1) v18 原本的 Research Gate 再加一層：**DSR / PBO / Reality Check**"
+        },
+        {
+          "level": 3,
+          "title": "A2) 研究輸出改成「三件套」才能進下一關"
+        },
+        {
+          "level": 2,
+          "title": "B) TAIFEX 在地交易所硬限制：必做的「送單前」驗證（避免 Rejected / 錯單）"
+        },
+        {
+          "level": 3,
+          "title": "B1) Order Size Limits（最容易踩雷）"
+        },
+        {
+          "level": 3,
+          "title": "B2) MWP（Market with Protection）一定要用“交易所定義”"
+        },
+        {
+          "level": 3,
+          "title": "B3) Price limit / dynamic mechanisms：要把“交易所保護”當成 regime"
+        },
+        {
+          "level": 2,
+          "title": "C) Shioaji / 永豐金：事件真相源的「更嚴格」落地規則"
+        },
+        {
+          "level": 3,
+          "title": "C1) Deal 事件可能先於 Order 事件（必須容忍 out-of-order）"
+        },
+        {
+          "level": 3,
+          "title": "C2) subscribe_trade 必須視為“可關閉但不建議”"
+        },
+        {
+          "level": 2,
+          "title": "D) 自主學習/自我改進：加上「安全護欄」才能准許進 live"
+        },
+        {
+          "level": 3,
+          "title": "D1) “學習”只能在三種模式中切換（硬規則）"
+        },
+        {
+          "level": 3,
+          "title": "D2) Drift 必須先被量化：Concept drift detector + 失效處置"
+        },
+        {
+          "level": 3,
+          "title": "D3) Safe RL / Risk-aware bandits：只允許“有約束”的學習"
+        },
+        {
+          "level": 2,
+          "title": "E) 事故文化補強：交易系統 = SRE 系統"
+        },
+        {
+          "level": 3,
+          "title": "E1) 強制 Blameless Postmortem（但要“可執行改進”）"
+        },
+        {
+          "level": 2,
+          "title": "F) v18.1 最小落地工作清單（主線助理拿來做 Roadmap 切片）"
+        },
+        {
+          "level": 2,
+          "title": "驗收步驟（逐步）/ Acceptance Steps"
+        },
+        {
+          "level": 3,
+          "title": "[A] 統計嚴謹性 Gate（DSR/PBO/RealityCheck）"
+        }
+      ]
+    },
+    {
+      "path": "docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md",
+      "sha256": "39714f5adf840b6cae8a67a8f81d2c5e258017820e9e2c21651422b83669d78b",
+      "head": "# TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.2_PATCH",
+      "headings_count": 31,
+      "headings_sample": [
+        {
+          "level": 1,
+          "title": "TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.2_PATCH"
+        },
+        {
+          "level": 2,
+          "title": "0) 本 Patch 依據與新增參考來源（高負載摘要）"
+        },
+        {
+          "level": 3,
+          "title": "0.1 官方/產業規範（需納入程式設計假設）"
+        },
+        {
+          "level": 3,
+          "title": "0.2 執行端（永豐金 Shioaji）"
+        },
+        {
+          "level": 3,
+          "title": "0.3 回測/研究誠實性（AFML/De Prado）"
+        },
+        {
+          "level": 2,
+          "title": "1) 期望值（Expected Return）建模：把「策略好不好」從回測曲線拉回可驗證的來源"
+        },
+        {
+          "level": 3,
+          "title": "1.1 交易型期望值的三層分解（必須在研究報告中固定輸出）"
+        },
+        {
+          "level": 3,
+          "title": "1.2 期望值估計的「不許偷吃」規格"
+        },
+        {
+          "level": 2,
+          "title": "2) 市場微結構（Market Microstructure）：把「價差/五檔/委託簿」納入策略與執行一體化"
+        },
+        {
+          "level": 3,
+          "title": "2.1 必備的「微結構資料欄位」（若 Shioaji 可得，優先用；不可得則以 proxy）"
+        },
+        {
+          "level": 3,
+          "title": "2.2 兩個「必做」的微結構模型（先簡後繁）"
+        },
+        {
+          "level": 2,
+          "title": "3) 選擇權/波動率（Options & Volatility）：用來「擴展策略宇宙」與「尾部風險治理」"
+        },
+        {
+          "level": 3,
+          "title": "3.1 波動率必備觀念（要變成模組，不只是知識）"
+        },
+        {
+          "level": 3,
+          "title": "3.2 期貨主線的「最低限度」波動率整合（不做選擇權也要做）"
+        },
+        {
+          "level": 3,
+          "title": "3.3 若未來要納入選擇權（先把骨架在 v18 主線留好）"
+        },
+        {
+          "level": 2,
+          "title": "4) 槓桿/保證金/倉位：把「會賺」變成「活得久」"
+        },
+        {
+          "level": 3,
+          "title": "4.1 倉位 sizing 的兩階段門檻（Hard Gate）"
+        },
+        {
+          "level": 3,
+          "title": "4.2 Kelly / Fractional Kelly 的使用準則（避免自殺）"
+        },
+        {
+          "level": 2,
+          "title": "5) 執行與風控：把「交易所拒單/斷線/延遲」納入 state machine，而不是例外處理"
+        },
+        {
+          "level": 3,
+          "title": "5.1 DPBM / 交易所保護機制的必備狀態機"
+        }
+      ]
+    }
+  ]
+}

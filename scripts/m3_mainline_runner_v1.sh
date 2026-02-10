@@ -1,5 +1,11 @@
 #!/bin/bash
 set -euo pipefail
+python3 src/ops/require_bibles_v1.py
+
+echo "=== [0/7] pm_refresh_board ==="
+bash scripts/pm_refresh_board.sh
+bash scripts/verify_pm_refresh_board_v1.sh
+
 cd "$HOME/tmf_autotrader"
 
 echo "=== [M3 MAINLINE v1] start $(date -Iseconds) ==="
@@ -19,22 +25,26 @@ for f in "${REQ[@]}"; do
   fi
 done
 
-echo "=== [1/6] m3_regression_spec_os_v1 ==="
+echo "=== [1/7] m3_regression_spec_os_v1 ==="
 bash scripts/m3_regression_spec_os_v1.sh
 
-echo "=== [2/6] m3_regression_reject_policy_v1 ==="
+echo "=== [2/7] m3_regression_reject_policy_v1 ==="
 bash scripts/m3_regression_reject_policy_v1.sh
 
-echo "=== [3/6] m3_regression_reconcile_os_v1 ==="
+echo "=== [3/7] m3_regression_reconcile_os_v1 ==="
 bash scripts/m3_regression_reconcile_os_v1.sh
 
-echo "=== [4/6] m3_regression_audit_replay_os_v1 ==="
+echo "=== [4/7] m3_regression_audit_replay_os_v1 ==="
 bash scripts/m3_regression_audit_replay_os_v1.sh
 
-echo "=== [5/6] m3_regression_latency_backpressure_os_v1 ==="
+echo "=== [5/7] m3_regression_latency_backpressure_os_v1 ==="
 bash scripts/m3_regression_latency_backpressure_os_v1.sh
 
-echo "=== [6/6] mk_windowpack_ultra ==="
+echo "=== [6/7] mk_windowpack_ultra ==="
+echo "=== [X/6] m3_regression_taifex_split_v1 ==="
+bash scripts/m3_regression_taifex_split_v1.sh
+echo "=== [X/8] m3_regression_paper_live_smoke_v1 ==="
+bash scripts/m3_regression_paper_live_smoke_v1.sh
 bash scripts/mk_windowpack_ultra.sh
 
 # HardGate newest zip in runtime/handoff/latest

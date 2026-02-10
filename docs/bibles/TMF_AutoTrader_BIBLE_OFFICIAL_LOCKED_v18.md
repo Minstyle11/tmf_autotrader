@@ -1885,6 +1885,9 @@ v10/v11/v12 的 Gate A/B/C 保留；v13 新增：
 
 ### 8.2 Paper 模式驗收
 1) SMOKE：最小資料集 + 最小策略集跑通。  
+
+   - **OFFICIAL Regression Suite（M2）**：Risk gates + Market-quality gates + Paper-live integration smoke。
+     - 規格/步驟：`docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md`（必跑；輸出 log + GOV snapshot + sha256 sidecar）
 2) CANARY：小風險預算、限制交易頻率，連跑 N 天。  
 3) 故障注入：行情斷線、回報延遲、reject storm、time skew。  
 4) TCA 檢查：滑價、fill rate、reject rate 在 SLO 範圍內。  

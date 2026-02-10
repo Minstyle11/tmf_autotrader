@@ -4,13 +4,104 @@ cd "$HOME/tmf_autotrader"
 
 LOG_DIR="runtime/logs"
 mkdir -p "$LOG_DIR"
+# --- LOG ROTATION (auto) ---
+# rotate autorestart logs to avoid unbounded growth (keep last N archives)
+ROT_MB="${TMF_AUTORESTART_LOG_ROTATE_MB:-5}"
+KEEP="${TMF_AUTORESTART_LOG_KEEP:-30}"
+
+rotate_if_big() {
+  local f="$1"
+  [ -f "$f" ] || return 0
+  local sz
+  sz=$(wc -c < "$f" 2>/dev/null || echo 0)
+  if [ "$sz" -ge $((ROT_MB*1024*1024)) ]; then
+    local ts
+    ts="$(date +%Y%m%d_%H%M%S)_$$"
+    mv "$f" "${f}.${ts}" 2>/dev/null || true
+    : > "$f"
+  fi
+}
+
+trim_archives() {
+  # keep newest $KEEP rotated archives per log base (e.g. autorestart.out.log)
+  local base="$1"
+  local list
+  list=$(ls -1t "$LOG_DIR/${base}."* 2>/dev/null || true)
+  [ -n "$list" ] || return 0
+  local n=0
+  while IFS= read -r fp; do
+    [ -n "$fp" ] || continue
+    n=$((n+1))
+    if [ "$n" -gt "$KEEP" ]; then
+      rm -f "$fp" 2>/dev/null || true
+    fi
+  done <<< "$list"
+}
+
 
 LOCK="/tmp/tmf_autotrader_autorestart.lock"
 if mkdir "$LOCK" 2>/dev/null; then
-  trap 'rmdir "$LOCK" 2>/dev/null || true' EXIT
+  cleanup() {
+  rc=$?
+  # --- LOG ROTATION (auto; always run on exit; keep last N archives) ---
+  ROT_MB="${TMF_AUTORESTART_LOG_ROTATE_MB:-5}"
+  KEEP="${TMF_AUTORESTART_LOG_KEEP:-30}"
+
+  rotate_if_big() {
+    f="$1"
+    [ -f "$f" ] || return 0
+    sz=$(wc -c < "$f" 2>/dev/null || echo 0)
+    # If forcing rotate (ROT_MB=0), skip creating empty archives
+    if [ "${ROT_MB}" = "0" ] && [ "$sz" -eq 0 ]; then
+      return 0
+    fi
+    if [ "$sz" -ge $((ROT_MB*1024*1024)) ]; then
+      ts="$(date +%Y%m%d_%H%M%S)_$$"
+      mv "$f" "${f}.${ts}" 2>/dev/null || true
+      : > "$f"
+    fi
+  }
+
+  trim_archives() {
+    base="$1"  # e.g. autorestart.out.log
+    n=0
+    for fp in $(ls -1t "$LOG_DIR/${base}."* 2>/dev/null || true); do
+      n=$((n+1))
+      if [ "$n" -gt "$KEEP" ]; then
+        rm -f "$fp" 2>/dev/null || true
+      fi
+    done
+  }
+
+  rotate_if_big "$LOG_DIR/autorestart.out.log"
+  rotate_if_big "$LOG_DIR/autorestart.err.log"
+  rotate_if_big "$LOG_DIR/autorestart.pipeline.log"
+  rotate_if_big "$LOG_DIR/autorestart.last_healthcheck.log"
+
+  trim_archives "autorestart.out.log"
+  trim_archives "autorestart.err.log"
+  trim_archives "autorestart.pipeline.log"
+  trim_archives "autorestart.last_healthcheck.log"
+
+  rmdir "$LOCK" 2>/dev/null || true
+  exit "$rc"
+}
+trap cleanup EXIT
 else
   echo "[autorestart] lock busy, skip"
   exit 0
+
+# --- rotate/trim AFTER lock (avoid concurrent rotate races) ---
+rotate_if_big "$LOG_DIR/autorestart.out.log"
+rotate_if_big "$LOG_DIR/autorestart.err.log"
+rotate_if_big "$LOG_DIR/autorestart.pipeline.log"
+rotate_if_big "$LOG_DIR/autorestart.last_healthcheck.log"
+
+trim_archives "autorestart.out.log"
+trim_archives "autorestart.err.log"
+trim_archives "autorestart.pipeline.log"
+trim_archives "autorestart.last_healthcheck.log"
+
 fi
 
 # Decide STRICT_SESSION by local time bucket:

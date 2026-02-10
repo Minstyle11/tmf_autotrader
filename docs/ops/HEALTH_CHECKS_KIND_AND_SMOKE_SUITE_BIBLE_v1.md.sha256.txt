@@ -1,0 +1,1 @@
+c5ba9b707cfe2fd707e0e67fdef46dba5ed722c71fc8c84fe58b3c2fe8af3a1e  docs/ops/HEALTH_CHECKS_KIND_AND_SMOKE_SUITE_BIBLE_v1.md

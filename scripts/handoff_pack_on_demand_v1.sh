@@ -73,7 +73,9 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude "*.pyc" \
     --exclude "runtime/data/" \
     --exclude "runtime/logs/" \
-    --exclude "runtime/handoff/_pack_work_" \
+    --exclude "runtime/handoff/_pack_work_*" \
+    --exclude "runtime/handoff/_pack_work_*/" \
+    --exclude "runtime/handoff/_pack_work_*/*" \
     --exclude "runtime/handoff/latest/" \
     "$PROJ/" "$PKG_DIR/repo/"
 else
@@ -85,7 +87,9 @@ else
     --exclude "*.pyc" \
     --exclude "runtime/data" \
     --exclude "runtime/logs" \
-    --exclude "runtime/handoff/_pack_work_" \
+    --exclude "runtime/handoff/_pack_work_*" \
+    --exclude "runtime/handoff/_pack_work_*/" \
+    --exclude "runtime/handoff/_pack_work_*/*" \
     --exclude "runtime/handoff/latest" \
     | tar -C "$PKG_DIR/repo" -xf -
 fi

@@ -125,11 +125,11 @@ PY
     echo "- SKIP (no TMF_AutoTrader_WindowPack_ULTRA_*.zip under runtime/handoff/latest)"
   fi
 
-  echo "## 8) M2 regression smoke (risk gates)"
+  echo "## 8) M2 regression suite v1 (risk + market-quality + paper-live)"
   echo '```'
   out=""
   rc=0
-  if out="$(./scripts/m2_regression_risk_gates_v1.sh 2>&1)"; then
+  if out="$(bash scripts/m2_regression_suite_v1.sh 2>&1)"; then
     rc=0
   else
     rc=$?
@@ -137,13 +137,12 @@ PY
   echo "$out"
   echo '```'
   if [ "${rc:-0}" -ne 0 ]; then
-    echo "FATAL: m2_regression_risk_gates_v1 failed rc=$rc"
+    echo "FATAL: m2_regression_suite_v1 failed rc=$rc"
     exit 10
   else
     echo "- OK"
   fi
   echo
-
   echo "## RESULT"
   echo "- PASS"
 } > "$OUT"

@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# TMF AutoTrader — Auto-refresh PROJECT_BOARD before commit (constitutional gate)
+# Hard rule: pm_refresh_board MUST be idempotent and MUST NOT touch files outside allowlist.
+# Ref: git-scm githooks pre-commit semantics.
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+ALLOWLIST=(
+  "docs/board/PROJECT_BOARD.md"
+  "docs/board/CHANGELOG.md"
+)
+
+# 1) run refresh
+if [[ -x scripts/pm_refresh_board.sh ]]; then
+  scripts/pm_refresh_board.sh
+else
+  echo "[FATAL] missing executable: scripts/pm_refresh_board.sh" >&2
+  exit 2
+fi
+
+# 2) stage allowlist (canonical artifacts)
+git add "${ALLOWLIST[@]}" 2>/dev/null || true
+
+# 3) detect any working-tree changes outside allowlist (block)
+#    NOTE: we only care about unstaged working tree diffs here.
+changed="$(git diff --name-only || true)"
+if [[ -n "$changed" ]]; then
+  # filter out allowlist
+  bad=()
+  while IFS= read -r f; do
+    [[ -z "$f" ]] && continue
+    ok=0
+    for a in "${ALLOWLIST[@]}"; do
+      if [[ "$f" == "$a" ]]; then ok=1; break; fi
+    done
+    [[ $ok -eq 0 ]] && bad+=("$f")
+  done <<< "$changed"
+
+  if [[ ${#bad[@]} -gt 0 ]]; then
+    echo "[BLOCK] pm_refresh_board changed files outside allowlist. Fix pm_refresh_board to be board-only." >&2
+    echo "[BLOCK] non-allowlist changed files:" >&2
+    for f in "${bad[@]}"; do echo "  - $f" >&2; done
+    exit 3
+  fi
+fi
+
+exit 0

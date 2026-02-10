@@ -252,3 +252,8 @@ _require_autostart_in_latest_zip() {
   }
   echo "[OK] hard-req autostart present in zip=$z"
 }
+
+# [HARD-REQ] run autostart presence check (must pass)
+_require_autostart_in_latest_zip
+
+echo "[OK] ALL HARD-REQ ZIP CHECKS PASSED"

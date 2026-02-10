@@ -27,14 +27,14 @@ def _sha256_file(p: Path) -> str:
 def _find_board() -> Path | None:
     # Prefer canonical, but allow repo drift.
     candidates = [
-        REPO / "PROJECT_BOARD.md",
-        REPO / "docs/board/PROJECT_BOARD.md",
-        REPO / "docs/PROJECT_BOARD.md",
-    ]
+                REPO / "docs/board/PROJECT_BOARD.md",
+            ]
     for c in candidates:
         if c.exists():
             return c
-    found = list(REPO.glob("**/PROJECT_BOARD.md"))
+    found = [REPO / "docs/board/PROJECT_BOARD.md"]  # OFFICIAL canonical only
+    
+    # NOTE: do NOT glob **/PROJECT_BOARD.md; backups can shadow canonical.
     if found:
         return found[0]
     # fallback: any *board*.md

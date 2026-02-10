@@ -1,140 +1,210 @@
-#!/usr/bin/env python3
-import sqlite3, json
-from datetime import datetime
 
-DB_DEFAULT = "runtime/data/tmf_autotrader_v1.sqlite3"
+from __future__ import annotations
 
-def floor_minute(ts_iso: str) -> str:
-    # ts_iso like 2026-01-29T12:10:41.139706 or 2026-01-29T12:10:41.119000
-    dt = datetime.fromisoformat(ts_iso)
-    dt = dt.replace(second=0, microsecond=0)
-    return dt.isoformat(timespec="seconds")
+import argparse
+import json
+import sqlite3
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional, Tuple, List
 
-def get_price_and_size(kind: str, payload: dict):
-    k = (kind or "").lower()
-    # tick_* should have close/price/last_price and volume/size fields.
-    # We'll be defensive: try common field names.
-    price_keys = ["close", "price", "last_price", "last", "trade_price"]
-    size_keys  = ["volume", "qty", "size", "trade_volume", "last_size"]
-    px = None
-    sz = None
-    for kk in price_keys:
-        v = payload.get(kk)
-        if isinstance(v, (int,float)):
-            px = float(v); break
-    for kk in size_keys:
-        v = payload.get(kk)
-        if isinstance(v, (int,float)):
-            sz = float(v); break
-    return px, sz
+# v2: build bars_1m from events (tick_*_v1) first; fallback to norm_ticks
+# - This removes the dependency that "norm_ticks must be populated".
+# - Intended for TMF AutoTrader: Shioaji recorder writes to events table; bars builder consumes events.
 
-def main(db_path: str = DB_DEFAULT):
-    con = sqlite3.connect(db_path)
-    cur = con.cursor()
-
-    # Ensure bars_1m schema
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS bars_1m (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        ts_min TEXT NOT NULL,
-        asset_class TEXT NOT NULL,
-        symbol TEXT NOT NULL,
-        o REAL NOT NULL,
-        h REAL NOT NULL,
-        l REAL NOT NULL,
-        c REAL NOT NULL,
-        v REAL NOT NULL,
-        n_trades INTEGER NOT NULL,
-        source TEXT NOT NULL,
-        UNIQUE(ts_min, asset_class, symbol)
-    )
-    """)
-    con.commit()
-
-    # Pull tick rows (exclude bidask; we only build bars from tick_* for now)
-    rows = cur.execute("""
-        SELECT ts, asset_class, symbol, kind, payload_json
-        FROM norm_ticks
-        WHERE kind IN ('tick_fop_v1','tick_stk_v1')
-          AND asset_class IN ('FOP','STK')
-          AND symbol IS NOT NULL
-        ORDER BY ts ASC
-    """).fetchall()
-
-    # Aggregate per (ts_min, asset_class, symbol)
-    agg = {}  # key -> dict
-    skipped = 0
-    for ts, asset, sym, kind, pj in rows:
+def _parse_ts_any(x: Any) -> Optional[datetime]:
+    if x is None:
+        return None
+    if isinstance(x, datetime):
+        return x
+    s = str(x).strip()
+    if not s:
+        return None
+    # Common formats we saw:
+    # - 2026-02-06T13:12:40.538
+    # - 2026-02-05T13:09:40.905+08:00
+    # - 2022/10/14 09:39:00.354081 (Shioaji doc examples)
+    try:
+        # ISO8601
+        dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        return dt
+    except Exception:
+        pass
+    for fmt in ("%Y/%m/%d %H:%M:%S.%f", "%Y/%m/%d %H:%M:%S", "%Y-%m-%d %H:%M:%S"):
         try:
-            payload = json.loads(pj) if pj else {}
+            return datetime.strptime(s, fmt)
         except Exception:
-            skipped += 1
+            pass
+    return None
+
+def _ts_minute(dt: datetime) -> str:
+    # store as ISO-like minute string, keep local naive if naive
+    dt2 = dt.replace(second=0, microsecond=0)
+    return dt2.isoformat(timespec="minutes")
+
+def _first_float(v: Any) -> Optional[float]:
+    if v is None:
+        return None
+    # list => first element
+    if isinstance(v, (list, tuple)) and v:
+        return _first_float(v[0])
+    # numeric
+    if isinstance(v, (int, float)):
+        return float(v)
+    s = str(v).strip()
+    if not s:
+        return None
+    try:
+        return float(s)
+    except Exception:
+        return None
+
+def _pick_price(payload: Dict[str, Any]) -> Optional[float]:
+    # Robust across tick schemas
+    for k in ("price", "last_price", "deal_price", "trade_price", "close", "last"):
+        if k in payload:
+            x = _first_float(payload.get(k))
+            if x is not None:
+                return x
+    # Some tick payloads might only have bid/ask; do not use those to fabricate trade ticks
+    return None
+
+def _pick_volume(payload: Dict[str, Any]) -> Optional[float]:
+    for k in ("volume", "qty", "size", "deal_qty", "trade_volume", "total_volume"):
+        if k in payload:
+            x = _first_float(payload.get(k))
+            if x is not None:
+                return x
+    return None
+
+def _asset_from_kind(kind: str) -> str:
+    k = (kind or "").lower()
+    if "fop" in k or "fut" in k or "future" in k:
+        return "FOP"
+    if "stk" in k or "stock" in k:
+        return "STK"
+    return "UNK"
+
+def _iter_tick_events(con: sqlite3.Connection, *, since_ymd: Optional[str], kinds: List[str]) -> List[Tuple[str, str, float, float]]:
+    """
+    Return list of (ts_min, symbol, price, volume) from events payload.
+    """
+    q = "SELECT ts, kind, payload_json FROM events WHERE kind IN (%s)" % (",".join(["?"] * len(kinds)))
+    params: List[Any] = list(kinds)
+    if since_ymd:
+        # since_ymd like '2026-02-06' -> filter by events.ts prefix best-effort
+        q += " AND ts >= ?"
+        params.append(since_ymd)
+    q += " ORDER BY id ASC"
+    out: List[Tuple[str, str, float, float]] = []
+    for ts, kind, payload_json in con.execute(q, params):
+        try:
+            payload = json.loads(payload_json) if payload_json else {}
+        except Exception:
+            payload = {}
+        if not isinstance(payload, dict):
             continue
-
-        # prefer payload.datetime if exists, else norm ts
-        ts_src = payload.get("datetime") if isinstance(payload, dict) else None
-        if isinstance(ts_src, str) and ts_src:
-            tmin = floor_minute(ts_src)
-        else:
-            tmin = floor_minute(ts)
-
-        px, sz = get_price_and_size(kind, payload)
+        sym = (payload.get("code") or payload.get("symbol") or "").strip()
+        if not sym:
+            continue
+        dt = _parse_ts_any(payload.get("datetime") or payload.get("ts") or payload.get("recv_ts") or ts)
+        if not dt:
+            continue
+        px = _pick_price(payload)
         if px is None:
-            skipped += 1
             continue
-        if sz is None:
-            sz = 0.0
+        vol = _pick_volume(payload)
+        if vol is None:
+            # allow zero-volume ticks, but keep as 0.0 (better than dropping)
+            vol = 0.0
+        out.append((_ts_minute(dt), sym, float(px), float(vol)))
+    return out
 
-        key = (tmin, asset, sym)
-        st = agg.get(key)
-        if st is None:
-            agg[key] = {
-                "o": px, "h": px, "l": px, "c": px,
-                "v": float(sz),
-                "n": 1,
-            }
-        else:
-            st["h"] = max(st["h"], px)
-            st["l"] = min(st["l"], px)
-            st["c"] = px
-            st["v"] += float(sz)
-            st["n"] += 1
-
-    # Upsert bars
-    up = 0
-    for (tmin, asset, sym), st in agg.items():
-        cur.execute("""
-            INSERT INTO bars_1m(ts_min, asset_class, symbol, o, h, l, c, v, n_trades, source)
-            VALUES(?,?,?,?,?,?,?,?,?,?)
-            ON CONFLICT(ts_min, asset_class, symbol) DO UPDATE SET
-                o=excluded.o,
-                h=excluded.h,
-                l=excluded.l,
-                c=excluded.c,
-                v=excluded.v,
-                n_trades=excluded.n_trades,
-                source=excluded.source
-        """, (tmin, asset, sym, st["o"], st["h"], st["l"], st["c"], st["v"], st["n"], "build_bars_1m_v1"))
-        up += 1
-
+def _ensure_schema(con: sqlite3.Connection) -> None:
+    # bars_1m is expected to exist from init_db; but keep it safe
+    con.execute(
+        """
+        CREATE TABLE IF NOT EXISTS bars_1m (
+            ts_min TEXT NOT NULL,
+            asset_class TEXT NOT NULL,
+            symbol TEXT NOT NULL,
+            o REAL NOT NULL,
+            h REAL NOT NULL,
+            l REAL NOT NULL,
+            c REAL NOT NULL,
+            v REAL NOT NULL,
+            n_trades INTEGER NOT NULL,
+            source TEXT NOT NULL,
+            UNIQUE(ts_min, asset_class, symbol)
+        )
+        """
+    )
     con.commit()
 
-    # Report
-    print(f"[OK] tick_rows={len(rows)} bars_upserted={up} skipped={skipped}")
-    print("=== [BARS COUNT] ===")
-    for asset, cnt in cur.execute("SELECT asset_class, COUNT(1) FROM bars_1m GROUP BY asset_class ORDER BY 2 DESC"):
-        print(asset, cnt, sep="\t")
+def build_bars_1m_from_events(*, db_path: str, since_ymd: Optional[str], kinds: List[str], dry: bool = False) -> Dict[str, Any]:
+    con = sqlite3.connect(db_path)
+    con.row_factory = sqlite3.Row
+    try:
+        _ensure_schema(con)
+        ticks = _iter_tick_events(con, since_ymd=since_ymd, kinds=kinds)
+        if not ticks:
+            return {"ok": True, "tick_rows": 0, "bars_upserted": 0, "skipped": 0, "note": "no tick events matched (events->ticks empty)"}
 
-    print("\n=== [LATEST 12 bars] ===")
-    for r in cur.execute("""
-        SELECT ts_min, asset_class, symbol, o,h,l,c,v,n_trades
-        FROM bars_1m
-        ORDER BY ts_min DESC, asset_class, symbol
-        LIMIT 12
-    """):
-        print("\t".join(map(str, r)))
+        # aggregate to 1m bars
+        agg: Dict[Tuple[str, str], Dict[str, Any]] = {}
+        skipped = 0
+        for ts_min, sym, px, vol in ticks:
+            key = (ts_min, sym)
+            b = agg.get(key)
+            if b is None:
+                b = {"o": px, "h": px, "l": px, "c": px, "v": float(vol), "n": 1}
+                agg[key] = b
+            else:
+                b["h"] = max(b["h"], px)
+                b["l"] = min(b["l"], px)
+                b["c"] = px
+                b["v"] += float(vol)
+                b["n"] += 1
 
-    con.close()
+        if dry:
+            return {"ok": True, "tick_rows": len(ticks), "bars_upserted": len(agg), "skipped": skipped, "dry": True}
+
+        up = 0
+        for (ts_min, sym), b in agg.items():
+            asset = _asset_from_kind("fop" if sym.endswith(("B6","R1")) else "stk")  # heuristic; kind info not kept per tick row
+            con.execute(
+                """
+                INSERT INTO bars_1m (ts_min, asset_class, symbol, o, h, l, c, v, n_trades, source)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(ts_min, asset_class, symbol) DO UPDATE SET
+                    asset_class=excluded.asset_class,
+                    o=excluded.o, h=excluded.h, l=excluded.l, c=excluded.c,
+                    v=excluded.v, n_trades=excluded.n_trades,
+                    source=excluded.source
+                """,
+                (ts_min, asset, sym, b["o"], b["h"], b["l"], b["c"], b["v"], int(b["n"]), "build_bars_1m_v1.events_v2"),
+            )
+            up += 1
+        con.commit()
+        return {"ok": True, "tick_rows": len(ticks), "bars_upserted": up, "skipped": skipped}
+    finally:
+        con.close()
+
+def main() -> int:
+    p = argparse.ArgumentParser(description="build bars_1m from TMF sqlite db (v2: events-first)")
+    p.add_argument("--db", default="runtime/data/tmf_autotrader_v1.sqlite3")
+    p.add_argument("--since", default="", help="YYYY-MM-DD (optional; filters events.ts >= since)")
+    p.add_argument("--kinds", default="tick_fop_v1,tick_stk_v1", help="comma-separated event kinds to treat as ticks")
+    p.add_argument("--dry", action="store_true")
+    args = p.parse_args()
+
+    since = (args.since or "").strip() or None
+    kinds = [x.strip() for x in (args.kinds or "").split(",") if x.strip()]
+    if not kinds:
+        kinds = ["tick_fop_v1", "tick_stk_v1"]
+
+    r = build_bars_1m_from_events(db_path=str(args.db), since_ymd=since, kinds=kinds, dry=bool(args.dry))
+    print(json.dumps(r, ensure_ascii=False, indent=2))
+    return 0 if r.get("ok") else 1
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

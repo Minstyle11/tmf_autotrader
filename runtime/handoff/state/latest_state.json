@@ -1,13 +1,13 @@
 {
-  "ts": "2026-02-02T16:56:53",
-  "board_total_pct": "63.6",
+  "ts": "2026-02-08T21:53:00",
+  "board_total_pct": "23.5",
   "launchd": {
     "pm_tick": "0",
     "autorestart": "0",
     "backup": "11",
     "handoff_tick": ""
   },
-  "last_changelog_line": "- [2026-02-02 16:53:11] pm_tick",
+  "last_changelog_line": "- [2026-02-04 20:50:28] pm_tick",
   "paths": {
     "repo": "/Users/williamhsu/tmf_autotrader",
     "handoff_log": "docs/handoff/HANDOFF_LOG.md",

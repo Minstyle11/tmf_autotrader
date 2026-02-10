@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
+cd "$HOME/tmf_autotrader"
+
+# --- AUTO: update PROJECT_BOARD completion (M6-04) ---
+python3 scripts/m8_update_board_from_patches_v1.py
+./scripts/m6_update_project_board_v1.sh >/dev/null 2>&1 || true
 PROJ="$HOME/tmf_autotrader"
 OUT="$PROJ/runtime/handoff/state/latest_state.json"
 mkdir -p "$(dirname "$OUT")"

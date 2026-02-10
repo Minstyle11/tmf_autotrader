@@ -6,6 +6,14 @@ from datetime import datetime
 from typing import Optional, Dict, Any, Tuple
 
 
+
+def _base_symbol(sym: str) -> str:
+    s = str(sym or "")
+    for b in ("TMF","TXF","MXF"):
+        if s.startswith(b):
+            return b
+    return s
+
 @dataclass(frozen=True)
 class RiskConfigV1:
     # --- core gates ---
@@ -107,8 +115,10 @@ class RiskEngineV1:
         cfg = self.cfg
 
         # --- allowlist ---
-        if symbol not in cfg.allow_symbols:
-            return RiskVerdict(False, "RISK_SYMBOL_NOT_ALLOWED", f"symbol not allowed: {symbol}", {"symbol": symbol})
+        # --- allowlist ---
+        # allow_symbols are treated as PREFIXES for rolling/continuous futures symbols (e.g., TMFB6, TMFR1)
+        if not any(str(symbol).startswith(pref) for pref in cfg.allow_symbols):
+            return RiskVerdict(False, "RISK_SYMBOL_NOT_ALLOWED", f"symbol not allowed: {symbol}", {"symbol": symbol, "allow_prefixes": list(cfg.allow_symbols)})
 
         # --- qty ---
         if qty <= 0 or qty > cfg.max_qty_per_order:
@@ -123,22 +133,41 @@ class RiskEngineV1:
         if side_u not in ("BUY", "SELL"):
             return RiskVerdict(False, "RISK_SIDE_INVALID", f"invalid side: {side}", {"side": side})
 
+        # --- derive entry_price for MARKET / reduce-only closes ---
+        # For MARKET orders, price may be None/0. Use meta.ref_price first; else use market_metrics bid/ask conservatively.
+        if entry_price <= 0:
+            try:
+                rp = (meta.get('ref_price') if isinstance(meta, dict) else None)
+                if rp is not None and float(rp) > 0:
+                    entry_price = float(rp)
+                else:
+                    mm0 = (meta.get('market_metrics') if isinstance(meta, dict) else None) or {}
+                    bid = mm0.get('bid')
+                    ask = mm0.get('ask')
+                    if bid is not None and ask is not None:
+                        # conservative: BUY uses ask, SELL uses bid
+                        entry_price = float(ask) if side_u == 'BUY' else float(bid)
+            except Exception:
+                pass
+
         if entry_price <= 0:
             return RiskVerdict(False, "RISK_PRICE_INVALID", f"invalid entry_price: {entry_price}", {"entry_price": entry_price})
 
         # --- require stop_price for meaningful per-trade risk bounding ---
         stop_price = meta.get("stop_price")
-        if cfg.strict_require_stop == 1 and (stop_price is None):
+        # IMPORTANT: never block position-reducing / closing orders.
+        # Use meta hints to mark close-only intent (reduce_only / intent=CLOSE/EXIT).
+        reduce_only = bool(meta.get("reduce_only") or meta.get("close_only") or (str(meta.get("intent","")) in ("CLOSE","EXIT")))
+        if cfg.strict_require_stop == 1 and (stop_price is None) and (not reduce_only):
             return RiskVerdict(
                 False,
                 "RISK_STOP_REQUIRED",
                 "strict_require_stop=1 but meta.stop_price missing",
                 {"strict_require_stop": cfg.strict_require_stop},
             )
-
-        # --- compute per-trade worst loss (NTD) if stop exists ---
+# --- compute per-trade worst loss (NTD) if stop exists ---
         per_trade_risk_ntd = None
-        pv = float(cfg.point_value_by_symbol.get(symbol, 0.0))
+        pv = float(cfg.point_value_by_symbol.get(_base_symbol(symbol), 0.0))
         if stop_price is not None:
             try:
                 stop_price = float(stop_price)

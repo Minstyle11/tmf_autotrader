@@ -44,24 +44,37 @@ def _pick_latest_event_by_code(
     code: str,
     scan_limit: int = 500,
     reject_synthetic: bool = True,
+    asof_ts: Optional[str] = None,
 ) -> Optional[Tuple[int, str, Dict[str, Any], str, str]]:
     """
-    events payload_json is stored as TEXT; we conservatively scan the last N rows for this kind
-    and match payload['code'] == code.
+    Conservatively scan the last N rows for this kind and match payload['code'] == code.
+
+    If asof_ts is provided, only consider events with events.ts <= asof_ts_ceiling
+    to avoid look-ahead bias when embedding market_metrics into historical bars/orders.
+
     Returns: (event_id, ts, payload_dict, source_file, ingest_ts) or None
     """
-    rows = con.execute(
-        "SELECT id, ts, payload_json, source_file, ingest_ts FROM events WHERE kind=? ORDER BY id DESC LIMIT ?",
-        (kind, int(scan_limit)),
-    ).fetchall()
+    q = "SELECT id, ts, payload_json, source_file, ingest_ts FROM events WHERE kind=?"
+    params = [kind]
+
+    if asof_ts:
+        # If given as minute string 'YYYY-MM-DDTHH:MM', treat as end-of-minute ceiling.
+        tsu = str(asof_ts).strip()
+        if len(tsu) == 16 and "T" in tsu and tsu.count(":") == 1:
+            tsu = tsu + ":59.999999"
+        q += " AND ts <= ?"
+        params.append(tsu)
+
+    q += " ORDER BY id DESC LIMIT ?"
+    params.append(int(scan_limit))
+
+    rows = con.execute(q, params).fetchall()
     for r in rows:
         eid = int(r[0])
         ts = str(r[1])
         payload = _loads(r[2])
-        src_file = str(r[3]) if len(r) >= 4 and r[3] is not None else ''
-        ing_ts   = str(r[4]) if len(r) >= 5 and r[4] is not None else ''
-        src_file = str(r[3]) if len(r) > 3 else ""
-        ingest_ts = str(r[4]) if len(r) > 4 else ""
+        src_file = str(r[3]) if len(r) > 3 and r[3] is not None else ""
+        ing_ts   = str(r[4]) if len(r) > 4 and r[4] is not None else ""
         if str(payload.get("code", "")) == str(code):
             if reject_synthetic and bool(payload.get("synthetic")):
                 continue
@@ -135,6 +148,7 @@ def get_market_metrics_from_db(
     fop_code: str,
     bars_symbol_for_atr: Optional[str] = None,
     atr_n: int = 20,
+    asof_ts: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Fetch latest bidask_fop_v1 for `fop_code` and compute:
@@ -146,7 +160,7 @@ def get_market_metrics_from_db(
     """
     con = sqlite3.connect(db_path)
     try:
-        ev = _pick_latest_event_by_code(con, kind="bidask_fop_v1", code=fop_code, reject_synthetic=True)
+        ev = _pick_latest_event_by_code(con, kind="bidask_fop_v1", code=fop_code, reject_synthetic=True, asof_ts=asof_ts)
         if not ev:
             return {}
 
@@ -154,8 +168,32 @@ def get_market_metrics_from_db(
         bid_prices = payload.get("bid_price") or []
         ask_prices = payload.get("ask_price") or []
 
-        bid = float(bid_prices[0]) if len(bid_prices) >= 1 else None
-        ask = float(ask_prices[0]) if len(ask_prices) >= 1 else None
+        # Backward/forward compatible:
+        # - preferred schema: bid_price/ask_price arrays (level-1 at index 0)
+        # - fallback schema: bid/ask scalars
+        bid = None
+        ask = None
+        try:
+            if isinstance(bid_prices, (list, tuple)) and len(bid_prices) >= 1:
+                bid = float(bid_prices[0])
+        except Exception:
+            bid = None
+        try:
+            if isinstance(ask_prices, (list, tuple)) and len(ask_prices) >= 1:
+                ask = float(ask_prices[0])
+        except Exception:
+            ask = None
+
+        if bid is None and payload.get("bid") is not None:
+            try:
+                bid = float(payload.get("bid"))
+            except Exception:
+                bid = None
+        if ask is None and payload.get("ask") is not None:
+            try:
+                ask = float(payload.get("ask"))
+            except Exception:
+                ask = None
 
 
         if bid is None or ask is None:

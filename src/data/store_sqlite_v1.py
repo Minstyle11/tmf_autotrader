@@ -42,9 +42,11 @@ CREATE TABLE IF NOT EXISTS orders (
   price REAL,
   order_type TEXT,
   status TEXT,
+  verdict TEXT,
+  decision TEXT,
+  action TEXT,
   meta_json TEXT
 );
-
 CREATE TABLE IF NOT EXISTS fills (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   ts TEXT NOT NULL,
@@ -194,3 +196,24 @@ if __name__ == "__main__":
     print("=== [KIND COUNTS top30] ===")
     for k,n in rows:
         print(f"{k}\t{n}")
+
+
+def _migrate_orders_audit_cols_v1(con) -> None:
+    """Idempotent schema migration for orders audit columns.
+    Adds verdict/decision/action if missing.
+    Uses PRAGMA table_info to detect existing columns.
+    """
+    cols = {row[1] for row in con.execute("PRAGMA table_info(orders)").fetchall()}
+    need = []
+    if "verdict" not in cols:
+        need.append(("verdict", "TEXT"))
+    if "decision" not in cols:
+        need.append(("decision", "TEXT"))
+    if "action" not in cols:
+        need.append(("action", "TEXT"))
+    for name, typ in need:
+        try:
+            con.execute(f"ALTER TABLE orders ADD COLUMN {name} {typ}")
+        except Exception:
+            # If concurrent/duplicate, ignore (OperationalError duplicate column, etc.)
+            pass
