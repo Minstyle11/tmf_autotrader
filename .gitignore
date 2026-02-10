@@ -39,3 +39,6 @@ runtime/**
 !runtime/handoff/
 !runtime/handoff/state/
 
+# --- auto: ignore local backup/scratch files ---
+*.pre_*
+scripts/*.pre_*
