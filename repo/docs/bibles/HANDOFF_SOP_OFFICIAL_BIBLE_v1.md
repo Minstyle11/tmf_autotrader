@@ -9,12 +9,12 @@
 - **One-Truth**：以最新 ULTRA WindowPack ZIP 為唯一事實來源（One-Doc / One-Truth）。
 
 ### 0.2 「100% 無縫接軌」的必要條件（必須同時成立）
-1) **Pack HardGate PASS**：ZIP sha256 正確、解壓、`MANIFEST_SHA256_ALL_FILES.txt` 全檔 sha256 全 PASS  
-2) **Env Rebuild HardGate PASS**：python/venv/pip-freeze 指紋、關鍵檔案 sha256、LaunchAgents existence 等基線 PASS  
-3) **Opening Prompt Seal PASS**：ZIP 內含  
-   - `repo/runtime/handoff/state/NEW_WINDOW_OPENING_PROMPT_ULTRA_ZH.md`  
-   - `repo/runtime/handoff/state/NEW_WINDOW_OPENING_PROMPT_ULTRA_ZH.md.sha256.txt`  
-   - `repo/docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md` 且 header 必為：  
+1) **Pack HardGate PASS**：ZIP sha256 正確、解壓、`MANIFEST_SHA256_ALL_FILES.txt` 全檔 sha256 全 PASS
+2) **Env Rebuild HardGate PASS**：python/venv/pip-freeze 指紋、關鍵檔案 sha256、LaunchAgents existence 等基線 PASS
+3) **Opening Prompt Seal PASS**：ZIP 內含
+   - `repo/runtime/handoff/state/NEW_WINDOW_OPENING_PROMPT_ULTRA_ZH.md`
+   - `repo/runtime/handoff/state/NEW_WINDOW_OPENING_PROMPT_ULTRA_ZH.md.sha256.txt`
+   - `repo/docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md` 且 header 必為：
      `# NEW WINDOW OPENING PROMPT (FINAL, AUTO-UPDATED)`
 
 只要以上任一項不成立，視為「未達到無縫接軌」。
@@ -53,18 +53,18 @@
 ## 3) 新視窗「你要貼什麼」：兩種模式（推薦用 B）
 
 ### 3.1 SOP-A（最省事 / 最短）
-> 適合：容量爆了、只想快速切窗  
+> 適合：容量爆了、只想快速切窗
 新視窗第一則訊息只貼這一句（並附上 latest ZIP + sha）：
 
 - 「請以附檔 latest ULTRA WindowPack ZIP 為 One-Truth；第一步先跑 HardGate（Pack HardGate + Env Rebuild HardGate），兩者 PASS 後再依 `state/next_step.txt` 繼續。」
 
 ### 3.2 SOP-B（最穩健 / 推薦）
-> 適合：幾乎所有情境（避免平台附件讀取順序造成阻力）  
+> 適合：幾乎所有情境（避免平台附件讀取順序造成阻力）
 新視窗第一則訊息貼以下「四行摘要」（並附上 latest ZIP + sha）：
 
-1) 「One-Truth：以附檔 latest ULTRA ZIP 為唯一事實來源。」  
-2) 「第一步：執行 Pack HardGate；必須 PASS。」  
-3) 「第二步：執行 Env Rebuild HardGate；必須 PASS。」  
+1) 「One-Truth：以附檔 latest ULTRA ZIP 為唯一事實來源。」
+2) 「第一步：執行 Pack HardGate；必須 PASS。」
+3) 「第二步：執行 Env Rebuild HardGate；必須 PASS。」
 4) 「PASS 後：照 `state/next_step.txt` 做下一步；全程 One command per turn。」
 
 ---
@@ -201,19 +201,19 @@
 ## 7) 常見故障與排除（照表處理）
 
 ### 7.1 sha256 檢查報「No such file or directory」
-**原因**：在錯的工作目錄執行 `shasum -c`，sidecar 內寫的是相對路徑或不同 basename。  
+**原因**：在錯的工作目錄執行 `shasum -c`，sidecar 內寫的是相對路徑或不同 basename。
 **處理**：
 - 一律改成「用 zip 的完整路徑去驗」，或在 sidecar 同一目錄執行。
 - 修 HardGate 腳本：確保 `shasum -a 256 -c` 在正確 cwd。
 
 ### 7.2 ZIP 內 header 顯示 DRAFT 而非 FINAL
-**原因**：生成 DRAFT 的地方覆蓋 FINAL 或 pack 未更新。  
+**原因**：生成 DRAFT 的地方覆蓋 FINAL 或 pack 未更新。
 **處理**：
 - 修生成器/腳本，確保 pack 時寫入 FINAL header
 - 重新 mk_windowpack_ultra 打包，直到 ZIP 內 FINAL header 正確
 
 ### 7.3 Opening prompt 沒被 seal 進 zip
-**原因**：seal 條件未觸發或 zip 不是最新。  
+**原因**：seal 條件未觸發或 zip 不是最新。
 **處理**：
 - 先生成 `runtime/handoff/state/NEW_WINDOW_OPENING_PROMPT_ULTRA_ZH.md(+sha)`
 - 再重新打包 ULTRA
@@ -229,8 +229,8 @@
 ## 8) 交接成功的最終判定（你不用想，照這個看）
 
 當你在新視窗看到：
-- Pack HardGate：`[PASS]`  
-- Env Rebuild HardGate：`[PASS]`  
+- Pack HardGate：`[PASS]`
+- Env Rebuild HardGate：`[PASS]`
 - 且 `state/next_step.txt` 可直接指引下一步
 
 => 判定：**100% 無縫接軌達成，可像同視窗續跑。**

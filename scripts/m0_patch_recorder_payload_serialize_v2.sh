@@ -125,9 +125,9 @@ def main():
 
     print("[INFO] logging in (contracts_timeout=15000ms) ...")
     if api_key and secret_key:
-        api.login(api_key=api_key, secret_key=secret_key, contracts_timeout=15000)
+        api.login(api_key=api_key, secret_key=secret_key, contracts_timeout=15000, subscribe_trade=True)
     elif pid and pwd:
-        api.login(person_id=pid, passwd=pwd, contracts_timeout=15000)
+        api.login(person_id=pid, passwd=pwd, contracts_timeout=15000, subscribe_trade=True)
     else:
         die("Missing credentials. Set SHIOAJI_API_KEY & SHIOAJI_SECRET_KEY in configs/secrets/shioaji.env")
 

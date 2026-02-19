@@ -73,12 +73,12 @@ If upload fails, paste:
 
 ## HARDGATE：Pack Manifest 嚴格驗收（排除 manifest 自我行）v1
 
-**狀態：OFFICIAL / 憲法等級 / 不可違逆**  
+**狀態：OFFICIAL / 憲法等級 / 不可違逆**
 最後更新：2026-02-03 00:56:09 +0800
 
 ### 為什麼要排除「MANIFEST_SHA256_ALL_FILES.txt」自己的那一行？
-若 manifest 內容包含它自己的 checksum 行，則在重算/比對時會出現「自我引用」不動點問題：  
-manifest 內容一變 → manifest 檔案的 hash 就變 → 那行 checksum 也必然改變 → 永遠 mismatch。  
+若 manifest 內容包含它自己的 checksum 行，則在重算/比對時會出現「自我引用」不動點問題：
+manifest 內容一變 → manifest 檔案的 hash 就變 → 那行 checksum 也必然改變 → 永遠 mismatch。
 **因此規則固定：manifest 的 checksum 清單必須排除 manifest 檔案本身。**
 
 ### ULTRA 打包必做事項（HARDGATE-STRICT）

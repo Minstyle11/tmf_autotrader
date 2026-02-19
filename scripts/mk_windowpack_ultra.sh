@@ -1,13 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # [AUTO] generate NEW_WINDOW_OPENING_PROMPT (ULTRA) before packing
-python3 scripts/gen_new_window_opening_prompt_ultra_zh.py || true
+# [PATCH] moved below after ZIP build to avoid latest_zip mismatch
+# python3 scripts/gen_new_window_opening_prompt_ultra_zh.py || true
 
 
 PROJ="$HOME/tmf_autotrader"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 PACK_NAME="tmf_autotrader_windowpack_ultra_${STAMP}"
 WORK_BASE="$PROJ/runtime/handoff/_pack_work_${STAMP}"
+### AUTO:SYNC_NEXT_STEP_PACKROOT (v1) ###
+# Ensure pack-root state/next_step.txt always matches repo runtime/handoff/state/next_step.txt
+# (UNPACK_ROOT-agnostic / portable next-step must live at pack root)
+if [ -n "" ]; then
+  mkdir -p "/state"
+  if [ -f "/runtime/handoff/state/next_step.txt" ]; then
+    cp -f "/runtime/handoff/state/next_step.txt" "/state/next_step.txt"
+    ( cd "/state" && shasum -a 256 "next_step.txt" > "next_step.txt.sha256.txt" )
+  fi
+fi
+
 PACK_ROOT="$WORK_BASE/${PACK_NAME}"
 LATEST_DIR="$PROJ/runtime/handoff/latest"
 
@@ -156,6 +168,9 @@ ZIP="$LATEST_DIR/TMF_AutoTrader_WindowPack_ULTRA_${STAMP}.zip"
 SHA_FILE="${ZIP}.sha256.txt"
 # NOTE: sidecar MUST contain basename only (so shasum -c works when running inside latest dir)
 ( cd "$(dirname "$ZIP")" && bn="$(basename "$ZIP")" && shasum -a 256 "$bn" > "$(basename "$SHA_FILE")" )
+# [AUTO] generate NEW_WINDOW_OPENING_PROMPT (ULTRA) AFTER zip build (fix latest_zip mismatch)
+python3 scripts/gen_new_window_opening_prompt_ultra_zh.py
+
 echo "=== [OK] BUILT ==="
 ls -l "$ZIP" "$SHA_FILE"
 echo "=== [UNZIP -l top35] ==="
@@ -257,3 +272,9 @@ _require_autostart_in_latest_zip() {
 _require_autostart_in_latest_zip
 
 echo "[OK] ALL HARD-REQ ZIP CHECKS PASSED"
+
+
+# === WEB RESEARCH EVIDENCE HARDGATE (FAIL-fast) ===
+# Require non-placeholder web research evidence to exist before producing any ULTRA ZIP.
+# This enforces the constitutional rule: every turn must web-search -> filter -> synthesize -> evidence.
+scripts/ops_web_research_evidence_hardgate_v1.sh "runtime/handoff/state/web_research_evidence_latest.md"

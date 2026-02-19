@@ -9,11 +9,11 @@
 Array {
     /bin/bash
     -lc
-    cd $HOME/tmf_autotrader; ./scripts/pm_refresh_board.sh pm_tick
+    cd $HOME/tmf_autotrader; scripts/pm_refresh_board_canonical.sh pm_tick
 }
 ```
 
-## 2) pm_refresh_board.sh logrotate hook (should be exactly 1)
+## 2) pm_refresh_board (legacy) logrotate hook (should be exactly 1)
 ```
 10:RETENTION_DAYS=7 MAX_PER_LOG=200 OUT_MAX_BYTES=1048576 FORCE_ROTATE=0 bash "$HOME/tmf_autotrader/scripts/pm_log_rotate_v1.sh" >>"$HOME/tmf_autotrader/runtime/logs/pm_log_rotate_v1.run.log" 2>&1 || true
 ```

@@ -7,6 +7,42 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Optional, List
 
+from src.ops.learning.governance_v1 import env_mode, LearningMode, shadow_log_intent, enforce_promote_canary
+from src.ops.learning.drift_detector_v1 import run_drift_detector_v1
+
+
+def _learning_governance_apply(*, strat_name: str, side: str, qty: float, meta: dict) -> tuple[bool, str]:
+    """
+    Returns (allow_place, reason).
+    - FROZEN: allow normal paper trading (no adaptive modifications)
+    - SHADOW: DO NOT place; log intent + reason
+    - PROMOTE: allow but must pass canary bounds; otherwise block
+    """
+    if LEARNING_MODE == LearningMode.SHADOW:
+        shadow_log_intent(intent={
+            "kind": "shadow_intent",
+            "strat": strat_name,
+            "side": side,
+            "qty": qty,
+            "meta": meta,
+            "reason": "LEARNING_MODE_SHADOW",
+        })
+        return (False, "LEARNING_MODE_SHADOW")
+    if LEARNING_MODE == LearningMode.PROMOTE:
+        why = enforce_promote_canary(strat_name=strat_name, qty=qty, side=side)
+        if why:
+            shadow_log_intent(intent={
+                "kind": "promote_blocked",
+                "strat": strat_name,
+                "side": side,
+                "qty": qty,
+                "meta": meta,
+                "reason": why,
+            })
+            return (False, why)
+    return (True, "OK")
+
+
 from src.data.store_sqlite_v1 import init_db
 from src.oms.paper_oms_v1 import PaperOMS
 from src.oms.paper_oms_risk_safety_wrapper_v1 import PaperOMSRiskSafetyWrapperV1
@@ -306,6 +342,20 @@ def main() -> int:
 
     # unreachable
     # return 0
+
+
+# --- Learning Governance Hook (v18.1) ---
+LEARNING_MODE = env_mode(LearningMode.FROZEN)
+
+# Fail-safe: drift detector runs at runner start; any trigger freezes governance
+try:
+    _dr = run_drift_detector_v1()
+    if not _dr.ok:
+        # drift detector already froze governance state; keep runner conservative
+        LEARNING_MODE = LearningMode.FROZEN
+except Exception:
+    # ultra-conservative: on detector failure, freeze
+    LEARNING_MODE = LearningMode.FROZEN
 
 
 if __name__ == "__main__":

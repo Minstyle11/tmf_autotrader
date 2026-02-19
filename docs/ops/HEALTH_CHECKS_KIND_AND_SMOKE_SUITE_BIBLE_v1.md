@@ -35,4 +35,3 @@
    - enabled（print-disabled 顯示 enabled）
    - calendarinterval active
    - 手動 kickstart 可寫 log + DB
-

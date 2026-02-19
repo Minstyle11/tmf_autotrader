@@ -86,8 +86,8 @@ RC=0
   echo
   if [ -d "$PROJ/.git" ]; then
     emit_kv ".git" "OK"
-    emit_kv "git_head" "$(cd "$PROJ" && git rev-parse --short HEAD 2>/dev/null || true)"
-    emit_kv "git_status_porcelain_lines" "$(cd "$PROJ" && git status --porcelain=v1 2>/dev/null | wc -l | tr -d ' ')"
+    emit_kv "git_head" "$(git -C "$PROJ" rev-parse --short HEAD 2>/dev/null || true)"
+    emit_kv "git_status_porcelain_lines" "$(git -C "$PROJ" status --porcelain=v1 2>/dev/null | wc -l | tr -d ' ')"
   else
     emit_kv ".git" "MISSING"
     RC=14

@@ -1,12 +1,12 @@
 from __future__ import annotations
 import argparse, json, sqlite3
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 def _now_ms() -> str:
-    return datetime.now().isoformat(timespec="milliseconds")
-
+    # UTC ISO w/ ms precision, trailing 'Z'
+    return datetime.now(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z').replace("+00:00", "Z")
 def _set_cooldown(con: sqlite3.Connection, value: Dict[str, Any]) -> None:
     con.execute(
         "CREATE TABLE IF NOT EXISTS safety_state("
@@ -18,7 +18,7 @@ def _set_cooldown(con: sqlite3.Connection, value: Dict[str, Any]) -> None:
     con.execute(
         "INSERT INTO safety_state(key, value_json, ts) VALUES(?,?,?) "
         "ON CONFLICT(key) DO UPDATE SET value_json=excluded.value_json, ts=excluded.ts",
-        ("cooldown", json.dumps(value, ensure_ascii=False), datetime.now().isoformat(timespec="seconds")),
+        ("cooldown", json.dumps(value, ensure_ascii=False), datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")),
     )
 
 def _clear_cooldown(con: sqlite3.Connection) -> None:

@@ -7,9 +7,59 @@ from src.oms.paper_oms_v1 import PaperOMS
 from src.risk.risk_engine_v1 import RiskEngineV1
 from src.safety.system_safety_v1 import SystemSafetyEngineV1
 from execution.taifex_preflight_v1 import check_taifex_preflight
+from execution.tw_market_calendar_v1 import market_open_verdict
 
 from execution.reject_taxonomy import load_policy, decision_from_verdict
+from src.execution.order_result_types import is_rejected_order
 
+
+
+def _ensure_intent_envelope(meta: dict) -> dict:
+    # Best-effort intent envelope enrichment for auditability; never raises.
+    try:
+        if not isinstance(meta, dict):
+            return meta
+        intent = meta.get('intent')
+        if not isinstance(intent, dict):
+            intent = {}
+
+        def pick(*keys):
+            for k in keys:
+                v = meta.get(k)
+                if v is not None:
+                    return v
+            return None
+
+        corr = pick('correlation_id', 'corr_id') or intent.get('correlation_id')
+        caus = pick('causation_id', 'cause_id') or intent.get('causation_id')
+        if not corr:
+            import uuid
+            corr = str(uuid.uuid4())
+
+        intent.setdefault('correlation_id', corr)
+        if caus:
+            intent.setdefault('causation_id', caus)
+
+        prov = {
+            'strategy_id': pick('strategy_id', 'strategy', 'strat_id') or intent.get('strategy_id'),
+            'signal_id':   pick('signal_id', 'signal', 'sig_id') or intent.get('signal_id'),
+            'runner':      pick('runner', 'runner_id') or intent.get('runner'),
+            'source_file': pick('source_file', 'src_file', 'source') or intent.get('source_file'),
+        }
+        for k, v in prov.items():
+            if v is not None and k not in intent:
+                intent[k] = v
+
+        stop = pick('stop', 'stop_spec', 'stop_cfg', 'stop_config', 'stop_loss')
+        if stop is None:
+            stop = intent.get('stop')
+        if stop is not None and 'stop' not in intent:
+            intent['stop'] = stop
+
+        meta['intent'] = intent
+        return meta
+    except Exception:
+        return meta
 
 
 class PaperOMSRiskSafetyWrapperV1:
@@ -154,6 +204,7 @@ class PaperOMSRiskSafetyWrapperV1:
             # persist decision into meta for v18 audit
             try:
                 meta = dict(meta) if isinstance(meta, dict) else {}
+                meta = _ensure_intent_envelope(meta)
                 meta.setdefault("reject_decision", {"ok": dec.ok, "code": dec.code, "domain": dec.domain, "severity": dec.severity, "action": dec.action, "reason": dec.reason, "details": dec.details})
             except Exception:
                 pass
@@ -183,6 +234,36 @@ class PaperOMSRiskSafetyWrapperV1:
                 "safety": {"code": sv.code, "reason": sv.reason, "details": sv.details},
             }
 
+
+        # 1.4) Market calendar gate (TWSE/TAIFEX holidays/weekends/session gaps) (v18.1-C)
+        mv = market_open_verdict(meta=meta)
+        if not mv.ok:
+            pol = self._load_reject_policy()
+            dec = decision_from_verdict({"ok": False, "code": mv.code, "reason": mv.reason, "details": mv.details}, policy=pol)
+            try:
+                meta = dict(meta) if isinstance(meta, dict) else {}
+                meta = _ensure_intent_envelope(meta)
+                meta.setdefault("reject_decision", {"ok": dec.ok, "code": dec.code, "domain": dec.domain, "severity": dec.severity, "action": dec.action, "reason": dec.reason, "details": dec.details})
+                meta.setdefault("market_calendar_verdict", {"ok": mv.ok, "code": mv.code, "reason": mv.reason, "details": mv.details})
+            except Exception:
+                pass
+            oid = self._insert_rejected_order(
+                symbol=symbol,
+                side=side,
+                qty=float(qty),
+                price=price,
+                order_type=order_type,
+                meta=meta,
+                safety_verdict=sv,
+                risk_verdict=None,
+            )
+            return {
+                "ok": False,
+                "status": "REJECTED",
+                "broker_order_id": oid,
+                "safety": {"code": mv.code, "reason": mv.reason, "details": mv.details},
+            }
+
         # 1.5) TAIFEX preflight hard constraints (v18.1-B)
 
         pv = check_taifex_preflight(symbol=symbol, side=side, qty=float(qty), order_type=order_type, price=price, meta=meta)
@@ -201,6 +282,7 @@ class PaperOMSRiskSafetyWrapperV1:
             # persist decision + preflight verdict into meta for v18 audit
             try:
                 meta = dict(meta) if isinstance(meta, dict) else {}
+                meta = _ensure_intent_envelope(meta)
                 meta.setdefault("reject_decision", {"ok": dec.ok, "code": dec.code, "domain": dec.domain, "severity": dec.severity, "action": dec.action, "reason": dec.reason, "details": dec.details})
                 meta.setdefault("preflight_verdict", {"ok": pv.ok, "code": pv.code, "reason": pv.reason, "details": pv.details})
             except Exception:
@@ -268,6 +350,47 @@ class PaperOMSRiskSafetyWrapperV1:
 
                 # fill split_total for all children meta (best-effort; children may be dict or order objects)
                 n = i
+                # v18 audit: INSERT split parent row (orders)
+                # Record the split event itself as a parent row for audit/replay.
+                # Children orders are inserted separately by the normal success-path insert logic.
+                try:
+                    import sqlite3, json
+                    con = sqlite3.connect(self.db_path)
+                    try:
+                        row = con.execute("SELECT 1 FROM orders WHERE broker_order_id=? LIMIT 1", (parent_id,)).fetchone()
+                        if row is None:
+                            ts = self._now()
+                            meta_parent = dict(meta) if isinstance(meta, dict) else {}
+                            meta_parent = _ensure_intent_envelope(meta_parent)
+                            meta_parent.setdefault("split_parent_id", parent_id)
+                            meta_parent.setdefault("split_limit", float(lim))
+                            meta_parent.setdefault("split_requested_qty", float(qty))
+                            meta_parent.setdefault("split_children", results)
+                            con.execute(
+                                "INSERT INTO orders(ts, broker_order_id, symbol, side, qty, price, order_type, status, verdict, decision, action, meta_json) "
+                                "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                                (
+                                    ts,
+                                    parent_id,
+                                    symbol,
+                                    side,
+                                    float(qty),
+                                    (float(price) if price is not None else None),
+                                    order_type,
+                                    "SPLIT_SUBMITTED",
+                                    str(pv.code),
+                                    str(dec.domain),
+                                    str(dec.action),
+                                    json.dumps(meta_parent, ensure_ascii=False),
+                                ),
+                            )
+                            con.commit()
+                    finally:
+                        con.close()
+                except Exception:
+                    # Audit must not break execution path
+                    pass
+
                 return {
                     "ok": True,
                     "status": "SPLIT_SUBMITTED",
@@ -296,7 +419,15 @@ class PaperOMSRiskSafetyWrapperV1:
 
         # 2) risk pre-trade
         entry_price = float(meta.get("ref_price", 0.0)) if meta.get("ref_price") is not None else 0.0
-        rv = self.risk.check_pre_trade(symbol=symbol, side=side, qty=float(qty), entry_price=float(entry_price), meta=meta)
+        try:
+            rv = self.risk.check_pre_trade(symbol=symbol, side=side, qty=float(qty), entry_price=float(entry_price), meta=meta)
+        except TypeError:
+            # Compat: older risk engines may not accept entry_price= kw.
+            # Try positional first, then try price= kw as a common alternative.
+            try:
+                rv = self.risk.check_pre_trade(symbol, side, float(qty), float(entry_price), meta)
+            except TypeError:
+                rv = self.risk.check_pre_trade(symbol=symbol, side=side, qty=float(qty), price=float(entry_price), meta=meta)
         if not rv.ok:
 
             pol = self._load_reject_policy()
@@ -304,6 +435,7 @@ class PaperOMSRiskSafetyWrapperV1:
             # persist decision into meta for v18 audit
             try:
                 meta = dict(meta) if isinstance(meta, dict) else {}
+                meta = _ensure_intent_envelope(meta)
                 meta.setdefault("reject_decision", {"ok": dec.ok, "code": dec.code, "domain": dec.domain, "severity": dec.severity, "action": dec.action, "reason": dec.reason, "details": dec.details})
             except Exception:
                 pass
@@ -337,6 +469,7 @@ class PaperOMSRiskSafetyWrapperV1:
         # 3) accept -> submit to paper OMS
         # 3) accept -> submit to paper OMS (persist PASS verdicts into meta for audit)
         meta_ok = dict(meta) if isinstance(meta, dict) else {}
+        meta_ok = _ensure_intent_envelope(meta_ok)
         if "safety_verdict" not in meta_ok:
             meta_ok["safety_verdict"] = {"ok": True, "code": sv.code, "reason": sv.reason, "details": sv.details}
         if "risk_verdict" not in meta_ok:
@@ -368,9 +501,42 @@ class PaperOMSRiskSafetyWrapperV1:
                 broker_order_id = order.get('broker_order_id') or order.get('order_id') or order.get('id')
 
             if broker_order_id:
-                import sqlite3
+                import sqlite3, json
                 con = sqlite3.connect(self.db_path)
                 try:
+                    # v18 audit: if this broker_order_id does NOT exist yet, INSERT a row now.
+                    row = con.execute("SELECT 1 FROM orders WHERE broker_order_id=? LIMIT 1", (broker_order_id,)).fetchone()
+                    if row is None:
+                        ts = self._now()
+                        # status best-effort from Paper OMS response
+                        status = None
+                        if isinstance(order, dict):
+                            status = order.get("status")
+                        if status is None:
+                            status = getattr(order, "status", None)
+                        if status is None:
+                            status = "SUBMITTED"
+                        con.execute(
+                            "INSERT INTO orders(ts, broker_order_id, symbol, side, qty, price, order_type, status, verdict, decision, action, meta_json) "
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                            (
+                                ts,
+                                broker_order_id,
+                                symbol,
+                                side,
+                                float(qty),
+                                (float(price) if price is not None else None),
+                                order_type,
+                                status,
+                                getattr(ok_dec, "code", None),
+                                getattr(ok_dec, "domain", None),
+                                getattr(ok_dec, "action", None),
+                                json.dumps(meta_ok, ensure_ascii=False),
+                            ),
+                        )
+                        con.commit()
+
+                    # Keep existing UPDATE for backward compatibility (in case row was created elsewhere)
                     con.execute(
                         'UPDATE orders SET verdict=?, decision=?, action=? WHERE broker_order_id=?',
                         (

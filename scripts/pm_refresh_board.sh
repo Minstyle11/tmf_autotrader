@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
-# AUTO:CANONICAL_BOARD_PROGRESS_V1
-python3 scripts/update_project_board_progress_v1.py >/dev/null 2>&1 || true
 set -euo pipefail
-cd "$(dirname "$0")/.."
-python3 scripts/pm_refresh_board_v2.py
 
-# --- CANONICAL_BOARD_PROGRESS_POST (must be last writer) ---
-python3 scripts/update_project_board_progress_v1.py >/dev/null 2>&1 || true
-# --- /CANONICAL_BOARD_PROGRESS_POST ---
+cd "$HOME/tmf_autotrader"
+
+# 1) Recompute canonical checkbox-only block (AUTO_PROGRESS_START/END)
+python3 scripts/update_project_board_progress_v2.py >/dev/null 2>&1 || true
+
+# 2) Sync header + AUTO:PROGRESS_BEGIN/END to canonical block counts
+python3 scripts/board_sync_header_to_canonical_v1.py >/dev/null 2>&1 || true
+
+# 3) Emit ONE stable canonical line for LaunchAgent logs
+python3 scripts/board_progress_from_block_v1.py | tail -n 1

@@ -5,8 +5,8 @@ PROJ="$HOME/tmf_autotrader"
 cd "$PROJ"
 
 git config --global init.defaultBranch main >/dev/null 2>&1 || true
-if [ "$(git branch --show-current 2>/dev/null || true)" = "master" ]; then
-  git branch -m main || true
+if [ "$(git -C "$PROJ" branch --show-current 2>/dev/null || true)" = "master" ]; then
+  git -C "$PROJ" branch -m main || true
 fi
 
 mkdir -p scripts runtime/logs docs/board configs/secrets "$HOME/Library/LaunchAgents"

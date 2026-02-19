@@ -1,11 +1,11 @@
 # OPS Runbook v1 (TMF AutoTrader)
 
 ## Daily/On-demand checks
-1) Healthcheck  
-- Command: `cd ~/tmf_autotrader && ./scripts/m0_healthcheck_v1.sh`  
+1) Healthcheck
+- Command: `cd ~/tmf_autotrader && ./scripts/m0_healthcheck_v1.sh`
 - Trading bucket strict check: `STRICT_SESSION=1 ./scripts/m0_healthcheck_v1.sh`
 
-2) Pipeline one-shot (recorder→ingest→norm→bars)  
+2) Pipeline one-shot (recorder→ingest→norm→bars)
 - Command: `cd ~/tmf_autotrader && MAX_SECONDS=30 ./scripts/m0_pipeline_one.sh`
 
 3) Auto backup

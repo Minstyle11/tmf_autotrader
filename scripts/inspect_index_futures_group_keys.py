@@ -15,7 +15,7 @@ def main():
 
     api = sj.Shioaji()
     print("[INFO] login (contracts_timeout=15000ms) ...")
-    api.login(api_key=api_key, secret_key=secret_key, contracts_timeout=15000)
+    api.login(api_key=api_key, secret_key=secret_key, contracts_timeout=15000, subscribe_trade=True)
 
     futs = api.Contracts.Futures
     targets = ["TXF", "MXF", "TMF", "MTX", "TX", "TMF"]  # include common names; we'll probe which exist as groups

@@ -97,7 +97,7 @@ def main():
     api = sj.Shioaji()
 
     print("[INFO] logging in ...")
-    api.login(person_id=pid, passwd=pwd)
+    api.login(person_id=pid, passwd=pwd, subscribe_trade=True)
 
     def sub_fut(sym: str):
         try:

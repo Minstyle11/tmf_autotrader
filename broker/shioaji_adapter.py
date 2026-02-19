@@ -1,30 +1,24 @@
 from __future__ import annotations
 
-"""
-V18 scaffold: broker/shioaji_adapter.py
-
-This is a placeholder created to align repo structure with TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.
-Implement according to v18 requirements before production use.
-"""
-
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from pathlib import Path
+from typing import Any, Optional
 
+from .shioaji_callbacks import make_order_callback
 
 @dataclass(frozen=True)
-class _ScaffoldInfo:
-    module: str = "broker/shioaji_adapter.py"
-    status: str = "SCAFFOLDED"
-    note: str = "TODO: implement per v18"
+class ShioajiAdapterConfig:
+    raw_events_dir: str = "runtime/raw_events"
+    enable_order_callback: bool = True
 
+class ShioajiAdapter:
+    def __init__(self, api: Any, *, config: Optional[ShioajiAdapterConfig] = None):
+        self.api = api
+        self.config = config or ShioajiAdapterConfig()
 
-def get_scaffold_info() -> Dict[str, Any]:
-    return {"module": "broker/shioaji_adapter.py", "status": "SCAFFOLDED", "todo": True}
-
-
-def _not_implemented(*args: Any, **kwargs: Any) -> None:
-    raise NotImplementedError("V18 scaffold placeholder: implement per v18")
-
-
-# public surface (safe default)
-__all__ = ["get_scaffold_info", "_not_implemented"]
+    def install_callbacks(self) -> None:
+        if not getattr(self.config, "enable_order_callback", True):
+            return
+        out_dir = Path(self.config.raw_events_dir)
+        cb = make_order_callback(out_dir=out_dir)
+        self.api.set_order_callback(cb)

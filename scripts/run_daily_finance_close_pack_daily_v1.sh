@@ -115,6 +115,6 @@ print("[OK] inserted TASK into PROJECT_BOARD.md")
 PY
 
 # 5) refresh board (so header reflects new totals)
-./scripts/pm_refresh_board.sh close_pack_tick >/dev/null 2>&1 || true
+./scripts/pm_refresh_board_canonical.sh close_pack_tick >/dev/null 2>&1 || true
 
 echo "=== [daily_finance_close_pack_v1] done $(date '+%F %T') ==="

@@ -45,7 +45,7 @@ def extract(md: str) -> list[str]:
     dedup: list[str] = []
     for x in out:
         k = x.lower()
-        if k in seen: 
+        if k in seen:
             continue
         seen.add(k)
         dedup.append(x)

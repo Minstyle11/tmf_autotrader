@@ -64,7 +64,7 @@ first=None
 with open(p,"r",encoding="utf-8",errors="replace") as f:
     for i,line in enumerate(f,1):
         s=line.rstrip("\n")
-        if not s: 
+        if not s:
             continue
         try:
             json.loads(s); ok+=1

@@ -35,7 +35,7 @@
 ### 3.1 RISK_SUMMARY 原文
 ```
 # LaunchAgents zsh risk summary (evidence from LAUNCHAGENT_ZSH_CMD_AUDIT.md)
-- generated_at: 2026-02-01 11:39:30 
+- generated_at: 2026-02-01 11:39:30
 - total_zsh_entries: 24
 
 ## Risk counters
@@ -155,7 +155,7 @@ source $HOME/.daytrader.env; cd /Users/williamhsu/daytrader/backend && ./venv/bi
 ### 3.2 CMD_AUDIT 原文（完整可追溯）
 ```
 # LaunchAgents zsh entrypoints audit
-- generated_at: 2026-02-01 11:38:42 
+- generated_at: 2026-02-01 11:38:42
 - scanned: 103 files under /Users/williamhsu/Library/LaunchAgents
 - zsh entries: 24
 
@@ -390,4 +390,3 @@ cd /Users/williamhsu/daytrader/backend && ./venv/bin/python scripts/pipeline_sel
 /Users/williamhsu/daytrader/bin/snapshot-loop-run
 ```
 ```
-

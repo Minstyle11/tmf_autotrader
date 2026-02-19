@@ -84,6 +84,17 @@ def decide_action(code: str, *, policy: Dict[str, Any]) -> Tuple[str, str]:
 
     return ("REJECT", _severity_default(domain, c))
 
+def _unwrap_verdict_v1(verdict):
+    v = verdict
+    # unwrap common wrapper shapes deterministically
+    if isinstance(v, dict):
+        if isinstance(v.get("risk"), dict):
+            v = v.get("risk")
+        if isinstance(v, dict) and isinstance(v.get("safety"), dict):
+            v = v.get("safety")
+    return v
+
+
 def decision_from_verdict(
     verdict: Any,
     *,
@@ -100,11 +111,7 @@ def decision_from_verdict(
     details_fallback = details_fallback or {}
 
     # unwrap common shapes
-    v = verdict
-    if isinstance(v, dict) and "risk" in v and isinstance(v["risk"], dict):
-        v = v["risk"]
-    if isinstance(v, dict) and "safety" in v and isinstance(v["safety"], dict):
-        v = v["safety"]
+    v = _unwrap_verdict_v1(verdict)
 
     ok = True
     code = "OK"
@@ -134,4 +141,3 @@ def decision_from_verdict(
     action, severity = decide_action(code, policy=policy)
 
     return RejectDecision(False, code, domain, severity, action, reason, {"details": details, "verdict": verdict})
-

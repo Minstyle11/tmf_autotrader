@@ -1,5 +1,5 @@
 # FOP KeepFresh Guard — Acceptance Evidence
-- date_local: 2026-02-09 15:41:10 
+- date_local: 2026-02-09 15:41:10
 - log: runtime/logs/fop_keepfresh_guard.2026-02-09.log
 - starts: 29
 - pass_count: 12
@@ -32,4 +32,3 @@ tick_fop_v1: max_ts=2026-02-09T07:40:30.857Z count_in_last120s=49
 LAST120S_groups=2 now_utc=2026-02-09T07:40:34.233653+00:00 thr_utc=2026-02-09T07:38:34.233653+00:00
 [PASS] fresh within 120s; exit 0
 ```
-

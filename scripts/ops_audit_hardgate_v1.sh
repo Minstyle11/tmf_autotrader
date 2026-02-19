@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
+PROJ=\"${PROJ:-$HOME/tmf_autotrader}\"
 # [AUTO] generate NEW_WINDOW_OPENING_PROMPT (ULTRA) before packing
 python3 scripts/gen_new_window_opening_prompt_ultra_zh.py || true
 
@@ -87,9 +89,9 @@ PY
   echo
 
   echo "## 6) git status (if repo)"
-  if command -v git >/dev/null 2>&1 && [ -d .git ]; then
+  if command -v git >/dev/null 2>&1 && [ -d "$PROJ/.git" ]; then
     echo '```'
-    git status --porcelain=v1 || true
+    git -C "$PROJ" status --porcelain=v1 || true
     echo '```'
   else
     echo "- SKIP (not a git repo)"
@@ -109,7 +111,7 @@ PY
 
     tmpdir="$(mktemp -d)"
     /usr/bin/unzip -q "${latest_zip}" -d "${tmpdir}"
-    root="$(find "${tmpdir}" -maxdepth 1 -type d -name "tmf_autotrader_windowpack_ultra_*" | head -n 1 || true)"
+    root="$(find "${tmpdir}" -maxdepth 1 -type d \( -name "tmf_autotrader_windowpack_ultra_*" -o -name "windowpack_ultra_*" \) | head -n 1 || true)"
     if [ -z "${root:-}" ]; then
       echo "[FATAL] cannot locate unpack root under: ${tmpdir}"
       exit 8
@@ -199,3 +201,6 @@ _append_hardreq_opening_prompt_to_audit_reports() {
 }
 _append_hardreq_opening_prompt_to_audit_reports
 
+
+echo "=== [OS] audit+replay + spec-diff + reject + reconcile (OFFICIAL-LOCKED) ===";
+bash scripts/m3_regression_audit_replay_os_v1.sh;

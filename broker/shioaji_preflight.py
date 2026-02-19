@@ -1,30 +1,18 @@
 from __future__ import annotations
 
-"""
-V18 scaffold: broker/shioaji_preflight.py
-
-This is a placeholder created to align repo structure with TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.
-Implement according to v18 requirements before production use.
-"""
-
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
-
+from typing import Any, Dict
 
 @dataclass(frozen=True)
-class _ScaffoldInfo:
-    module: str = "broker/shioaji_preflight.py"
-    status: str = "SCAFFOLDED"
-    note: str = "TODO: implement per v18"
+class PreflightVerdict:
+    ok: bool
+    code: str
+    reason: str
+    details: Dict[str, Any]
 
-
-def get_scaffold_info() -> Dict[str, Any]:
-    return {"module": "broker/shioaji_preflight.py", "status": "SCAFFOLDED", "todo": True}
-
-
-def _not_implemented(*args: Any, **kwargs: Any) -> None:
-    raise NotImplementedError("V18 scaffold placeholder: implement per v18")
-
-
-# public surface (safe default)
-__all__ = ["get_scaffold_info", "_not_implemented"]
+def check_shioaji_preflight(*, api: Any) -> PreflightVerdict:
+    if api is None:
+        return PreflightVerdict(False, "BROKER_API_NONE", "api is None", {})
+    if not hasattr(api, "set_order_callback"):
+        return PreflightVerdict(False, "BROKER_NO_ORDER_CALLBACK", "api lacks set_order_callback", {"type": str(type(api))})
+    return PreflightVerdict(True, "OK", "preflight ok", {})

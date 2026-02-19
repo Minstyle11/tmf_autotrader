@@ -2,6 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 from datetime import datetime, timezone
 import hashlib
+import re
 
 REPO = Path(".").resolve()
 
@@ -18,11 +19,43 @@ def _tail(p: Path, n_lines: int = 80) -> str:
     return "\n".join(lines[-n_lines:])
 
 def _sha256_file(p: Path) -> str:
+
     h = hashlib.sha256()
     with p.open("rb") as f:
         for chunk in iter(lambda: f.read(1024 * 1024), b""):
             h.update(chunk)
     return h.hexdigest()
+
+def _extract_board_digest_v1(board_path: Path) -> str:
+    """
+    Return ONLY the One-Truth digest blocks from PROJECT_BOARD to avoid stale noise.
+    - AUTO_PROGRESS block
+    - AUTO:PROGRESS kv block
+    - Milestone completion lines (e.g. "- M0 ...", "- M1 ...")
+    """
+    if not board_path or (not board_path.exists()):
+        return "(missing PROJECT_BOARD)"
+    txt = board_path.read_text(encoding="utf-8", errors="replace")
+    def grab_block(a: str, b: str) -> str:
+        m = re.search(re.escape(a) + r"(.*?)" + re.escape(b), txt, flags=re.S)
+        return (a + (m.group(1) if m else "") + b).strip()
+    auto1 = grab_block("<!-- AUTO_PROGRESS_START -->", "<!-- AUTO_PROGRESS_END -->")
+    auto2 = grab_block("<!-- AUTO:PROGRESS_BEGIN -->", "<!-- AUTO:PROGRESS_END -->")
+    # Milestone completion lines
+    ms = []
+    for ln in txt.splitlines():
+        if re.match(r'^\s*-\s*M\d+\s', ln):
+            ms.append(ln.strip())
+    out = []
+    out.append(auto1)
+    out.append("")
+    out.append(auto2)
+    if ms:
+        out.append("")
+        out.append("## 里程碑完成度（摘錄）")
+        out.extend(ms[:30])
+    return "\n".join(out).strip()
+
 
 def _find_board() -> Path | None:
     # Prefer canonical, but allow repo drift.
@@ -33,7 +66,7 @@ def _find_board() -> Path | None:
         if c.exists():
             return c
     found = [REPO / "docs/board/PROJECT_BOARD.md"]  # OFFICIAL canonical only
-    
+
     # NOTE: do NOT glob **/PROJECT_BOARD.md; backups can shadow canonical.
     if found:
         return found[0]

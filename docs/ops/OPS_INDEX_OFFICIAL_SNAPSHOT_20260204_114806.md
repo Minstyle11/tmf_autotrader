@@ -4,8 +4,8 @@
 
 ## PM / Project Management
 
-- **2026-02-04** — pm_tick logrotate v1 OFFICIAL snapshot + sha256  
+- **2026-02-04** — pm_tick logrotate v1 OFFICIAL snapshot + sha256
   - docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
 
-- **2026-02-04** — pm_tick logrotate v1 run.log rotation + STAT(run=) OFFICIAL snapshot + sha256  
+- **2026-02-04** — pm_tick logrotate v1 run.log rotation + STAT(run=) OFFICIAL snapshot + sha256
   - docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md

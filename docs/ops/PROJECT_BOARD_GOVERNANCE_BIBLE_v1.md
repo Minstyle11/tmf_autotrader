@@ -13,10 +13,10 @@ Example absolute path (this machine): /Users/williamhsu/tmf_autotrader/docs/boar
    - [!] BLOCKED
 3) Board work-items must remain aligned with v18 + v18.x (bibles) and must be completed.
 4) Any window handoff must include board + refresh/update scripts + BIBLES_INDEX_v18x.json.
-5) Do not manually edit progress header numbers; always run pm_refresh_board.sh/v2.py.
+5) Do not manually edit progress header numbers; always run pm_refresh_board (legacy)/v2.py.
 
 ## Operational Entry Points
-- scripts/pm_refresh_board.sh
+- scripts/pm_refresh_board_canonical.sh
 - scripts/pm_refresh_board_v2.py
 - scripts/m6_update_project_board_v1.sh
 - src/ops/board_mark_doing_v1.py

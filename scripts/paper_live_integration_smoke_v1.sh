@@ -14,6 +14,15 @@ DB="$TMPD/tmf_autotrader_smoke.sqlite3"
 echo "[INFO] smoke tmpdb: $DB" | tee -a "$LOG"
 echo "[INFO] tmpdb kept at: $DB" | tee -a "$LOG"
 
+# --- SMOKE OVERRIDES (regression-only; do NOT affect production) ---
+export TMF_HALT_DATES_CSV=""
+export TMF_REQUIRE_SESSION_OPEN="0"
+export TMF_IGNORE_MARKET_CALENDAR="1"
+echo "[INFO] smoke override: TMF_HALT_DATES_CSV=\"\" (ignore holidays for regression)" | tee -a "$LOG"
+echo "[INFO] smoke override: TMF_REQUIRE_SESSION_OPEN=0 (ignore session closed for regression)" | tee -a "$LOG"
+echo "[INFO] smoke override: TMF_IGNORE_MARKET_CALENDAR=1 (bypass market calendar for regression)" | tee -a "$LOG"
+# --- /SMOKE OVERRIDES ---
+
 # 0) init fresh db (no production pollution)
 python3 - "$DB" <<'PY_INIT' 2>&1 | tee -a "$LOG"
 from pathlib import Path

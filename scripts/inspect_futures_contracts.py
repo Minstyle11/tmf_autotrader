@@ -13,7 +13,7 @@ def main():
 
     api = sj.Shioaji()
     print("[INFO] logging in ...")
-    api.login(api_key=api_key, secret_key=secret_key)
+    api.login(api_key=api_key, secret_key=secret_key, subscribe_trade=True)
 
     futs = api.Contracts.Futures
 
@@ -52,7 +52,7 @@ def main():
     seen=set()
     uniq=[]
     for g,k in hits:
-        if (g,k) in seen: 
+        if (g,k) in seen:
             continue
         seen.add((g,k))
         uniq.append((g,k))

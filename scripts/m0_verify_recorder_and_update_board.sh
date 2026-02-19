@@ -37,7 +37,7 @@ bad = 0
 with p.open("r", encoding="utf-8") as f:
     for i, line in enumerate(f, 1):
         line=line.strip()
-        if not line: 
+        if not line:
             continue
         try:
             obj = json.loads(line)

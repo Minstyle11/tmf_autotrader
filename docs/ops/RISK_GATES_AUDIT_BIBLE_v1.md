@@ -2,9 +2,9 @@
 
 ## 目的
 把「紙上交易 Paper OMS」在下單前的風控閘門（Risk Gates）做到：
-1) 每一筆下單（PASS/REJECT）都可追溯（audit-ready）  
-2) DB `orders.meta_json` 永遠保留呼叫端 meta + `risk_verdict`  
-3) REJECT 也要寫入 `orders`（status=REJECTED）  
+1) 每一筆下單（PASS/REJECT）都可追溯（audit-ready）
+2) DB `orders.meta_json` 永遠保留呼叫端 meta + `risk_verdict`
+3) REJECT 也要寫入 `orders`（status=REJECTED）
 4) PASS 也要把 `risk_verdict(ok=True, code=OK, ...)` 一起存進 `orders.meta_json`
 
 ## 關鍵設計

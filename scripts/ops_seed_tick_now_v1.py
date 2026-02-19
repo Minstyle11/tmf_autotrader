@@ -24,11 +24,11 @@ import sqlite3
 from datetime import datetime, timezone
 
 def now_ts_iso() -> str:
-    # Use local time ISO without timezone suffix to match existing convention
-    return datetime.now().replace(microsecond=0).isoformat()
+    # Use UTC Z to avoid naive/local timestamp ambiguity
+    return datetime.now(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z')
 
 def utc_ingest_iso() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    return datetime.now(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z')
 
 def main() -> None:
     p = argparse.ArgumentParser()

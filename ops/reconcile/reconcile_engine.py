@@ -162,5 +162,3 @@ def reconcile_db(db_path: str) -> ReconcileResult:
         return ReconcileResult(True, "OK", "reconcile pass", details)
     finally:
         con.close()
-
-

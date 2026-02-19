@@ -3,7 +3,7 @@ set -euo pipefail
 python3 src/ops/require_bibles_v1.py
 
 echo "=== [0/7] pm_refresh_board ==="
-bash scripts/pm_refresh_board.sh
+bash scripts/pm_refresh_board_canonical.sh
 bash scripts/verify_pm_refresh_board_v1.sh
 
 cd "$HOME/tmf_autotrader"

@@ -1,13 +1,13 @@
 {
-  "ts": "2026-02-08T21:53:00",
-  "board_total_pct": "23.5",
+  "ts": "2026-02-20T01:52:00",
+  "board_total_pct": "28.0",
   "launchd": {
     "pm_tick": "0",
-    "autorestart": "0",
-    "backup": "11",
-    "handoff_tick": ""
+    "autorestart": "1",
+    "backup": "2",
+    "handoff_tick": "10"
   },
-  "last_changelog_line": "- [2026-02-04 20:50:28] pm_tick",
+  "last_changelog_line": "- [2026-02-10 23:31:08] M3: LIVE snapshot OK (non-synth/non-ops_seed bidask+tick; SystemSafetyEngineV1 OK; market_metrics non-empty) + PROJECT_BOARD autoprog reconciled (25/107=23.4%)",
   "paths": {
     "repo": "/Users/williamhsu/tmf_autotrader",
     "handoff_log": "docs/handoff/HANDOFF_LOG.md",

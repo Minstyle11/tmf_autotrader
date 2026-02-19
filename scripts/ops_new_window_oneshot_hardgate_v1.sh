@@ -108,7 +108,27 @@ main() {
   say "[NEXT_STEP_FILE] ${ns}"
   cat "${ns}" || true
 
-  say "=== [RESULT] PASS (pack+env+prompt+sop+clipboard) ==="
+
+  say "=== [D0] WEB RESEARCH EVIDENCE HARDGATE (FAIL-fast) ==="
+  local d0_sh="${unpack_root}/repo/scripts/ops_web_research_evidence_hardgate_v1.sh"
+  local d0_ev="${unpack_root}/repo/runtime/handoff/state/web_research_evidence_latest.md"
+  [ -x "${d0_sh}" ] || die "missing hardgate script in pack: ${d0_sh}"
+  "${d0_sh}" "${d0_ev}"
+
+say "=== [RESULT] PASS (pack+env+prompt+sop+clipboard) ==="
+say "=== [AUTO] show OPENING_PROMPT (first 220 lines) ==="
+if [ -n "${unpack_root:-}" ] && [ -f "${unpack_root}/repo/runtime/handoff/state/NEW_WINDOW_OPENING_PROMPT_ULTRA_ZH.md" ]; then
+  ( cd "${unpack_root}/repo" && sed -n "1,220p" runtime/handoff/state/NEW_WINDOW_OPENING_PROMPT_ULTRA_ZH.md ) || true
+else
+  say "[WARN] opening prompt not found under unpack. unpack_root=${unpack_root:-<empty>}"
+fi
+say "=== [AUTO] show NEXT_STEP ==="
+if [ -n "${unpack_root:-}" ] && [ -f "${unpack_root}/state/next_step.txt" ]; then
+  sed -n "1,220p" "${unpack_root}/state/next_step.txt" || true
+else
+  say "[WARN] next_step.txt not found under unpack. unpack_root=${unpack_root:-<empty>}"
+fi
+
   say "[INFO] unpack kept at: ${tmp}"
 }
 

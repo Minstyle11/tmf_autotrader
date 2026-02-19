@@ -41,6 +41,19 @@
     "EXEC_TAIFEX_MKT_QTY_LIMIT": {
       "action": "SPLIT",
       "severity": "HIGH"
+    },
+    "EXEC_TAIFEX_DPBM_REJECT": {
+      "action": "COOLDOWN",
+      "severity": "HIGH"
+    },
+    "EXEC_TAIFEX_REJECT_GENERIC": {
+      "action": "REJECT",
+      "severity": "MED"
+    },
+    "EXEC_MARKET_CLOSED": {
+      "action": "REJECT",
+      "severity": "HIGH",
+      "note": "Market closed (holiday/weekend/session gap) hard gate"
     }
   },
   "by_prefix": {

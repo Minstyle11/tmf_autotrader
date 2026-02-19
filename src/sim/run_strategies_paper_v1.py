@@ -6,6 +6,42 @@ import sqlite3
 from pathlib import Path
 from typing import Any, Dict, Optional, List
 
+from src.ops.learning.governance_v1 import env_mode, LearningMode, shadow_log_intent, enforce_promote_canary
+from src.ops.learning.drift_detector_v1 import run_drift_detector_v1
+
+
+def _learning_governance_apply(*, strat_name: str, side: str, qty: float, meta: dict) -> tuple[bool, str]:
+    """
+    Returns (allow_place, reason).
+    - FROZEN: allow normal paper trading (no adaptive modifications)
+    - SHADOW: DO NOT place; log intent + reason
+    - PROMOTE: allow but must pass canary bounds; otherwise block
+    """
+    if LEARNING_MODE == LearningMode.SHADOW:
+        shadow_log_intent(intent={
+            "kind": "shadow_intent",
+            "strat": strat_name,
+            "side": side,
+            "qty": qty,
+            "meta": meta,
+            "reason": "LEARNING_MODE_SHADOW",
+        })
+        return (False, "LEARNING_MODE_SHADOW")
+    if LEARNING_MODE == LearningMode.PROMOTE:
+        why = enforce_promote_canary(strat_name=strat_name, qty=qty, side=side)
+        if why:
+            shadow_log_intent(intent={
+                "kind": "promote_blocked",
+                "strat": strat_name,
+                "side": side,
+                "qty": qty,
+                "meta": meta,
+                "reason": why,
+            })
+            return (False, why)
+    return (True, "OK")
+
+
 from src.data.store_sqlite_v1 import init_db
 from src.oms.paper_oms_v1 import PaperOMS
 from src.oms.paper_oms_risk_safety_wrapper_v1 import PaperOMSRiskSafetyWrapperV1
@@ -151,11 +187,16 @@ def _load_strategies() -> List[Any]:
     out: List[Any] = []
     for k in keys:
         if k in ("trend", "trend_v1"):
-            out.append(TrendStrategyV1(qty=float(os.environ.get("TMF_QTY", "2.0"))))
+            out.append(TrendStrategyV1.from_env(qty=float(__import__("os").environ.get("TMF_QTY","2.0"))))
         elif k in ("mr", "mean_reversion", "mean_reversion_v1"):
-            out.append(MeanReversionStrategyV1(qty=float(os.environ.get("TMF_QTY", "2.0"))))
+            out.append(MeanReversionStrategyV1.from_env())
         else:
             print(f"[WARN] unknown strategy key: {k} (skip)")
+    # Back-compat: allow class-name filter via TMF_STRAT_ONLY
+    only = str(os.environ.get("TMF_STRAT_ONLY", "")).strip()
+    if only:
+        out = [st for st in out if st.__class__.__name__ == only]
+        print("[INFO] TMF_STRAT_ONLY=%s -> strats=%s" % (only, [st.__class__.__name__ for st in out]))
     return out
 
 
@@ -190,33 +231,83 @@ def main():
     safety = SystemSafetyEngineV1(db_path=str(db), cfg=safety_cfg)
     wrap = PaperOMSRiskSafetyWrapperV1(paper_oms=oms, risk=risk, safety=safety, db_path=str(db))
 
-    # Data: last bar (truthy)
-    bar = _fetch_last_bar_1m(db, bars_symbol_for_atr)
-    if not bar:
-        print(f"[SKIP] no bars_1m for symbol={args.symbol}")
-        return
-    ref_price = float(bar["c"])
+    # Data: warmup recent bars so stateful strategies (Donchian/ATR) can produce signals
+    strats = _load_strategies()
+    if not strats:
+        print("[INFO] no strategies enabled; exit")
+        return 0
+
+    warm_base = 0
+    for st in strats:
+        warm_base = max(warm_base, int(getattr(st, "lookback", 20)), int(getattr(st, "atr_n", 14)))
+    warm_n = int(warm_base + 2)
+
+    bars = _fetch_recent_bars_1m(db, bars_symbol, warm_n)
+    if not bars:
+        print("[INFO] no bars_1m rows for symbol; exit")
+        return 0
+
+    last_bar = bars[-1]
+    if (not last_bar) or (last_bar.get("c") is None):
+        print(f"[SKIP] invalid last bar for symbol={args.symbol}")
+        return 0
+
+    ref_price = float(last_bar["c"])
 
     mm = _build_market_metrics(db_path=db, fop_code=fop_code, bars_symbol_for_atr=bars_symbol, atr_n=atr_n)
     if not mm:
         print("[REJECT] market_metrics missing bid/ask from DB (strict_require_market_metrics=1).")
-        return
+        return 0
 
-    ctx = StrategyContextV1(now_ts=str(bar["ts_min"]), symbol=args.symbol, state={})
-    strats = _load_strategies()
-    print(f"[INFO] strategies={','.join([getattr(s,'name','?') for s in strats])} bar_ts={bar['ts_min']} c={ref_price}")
-    for s in strats:
-        sig = s.on_bar_1m(ctx, bar)
+    strat_names = ",".join([getattr(x, "name", x.__class__.__name__) for x in strats])
+    print(f"[INFO] strats={strat_names} warm_n={warm_n} last_ts={last_bar.get('ts_min')} c={ref_price}")
+
+    # Warmup: feed historical bars (exclude last) to build indicator state
+    # --- PATCH: avoid consuming force-first during warmup ---
+    import os as _os  # _FORCE_FIRST_RESTORE
+    _ff_key = "TMF_TREND_FORCE_FIRST_SIGNAL"
+    _ff_prev = _os.environ.get(_ff_key)
+    if _ff_prev is not None:
+        _os.environ[_ff_key] = "0"
+
+    for b in bars[:-1]:
+        ctx_w = StrategyContextV1(now_ts=str(b.get("ts_min")), symbol=args.symbol, state={})
+        for st in strats:
+            try:
+                fn = getattr(st, "on_bar", None) or getattr(st, "on_bar_1m", None)
+                if fn:
+                    fn(ctx_w, b)
+            except Exception as ex:
+                sn = getattr(st, "name", st.__class__.__name__)
+                print(f"[WARN] warmup error strat={sn} ts={b.get('ts_min')} ex={ex}")
+
+    # --- PATCH: restore force-first for decision bar ---
+    if _ff_prev is not None:
+        _os.environ[_ff_key] = _ff_prev
+
+    # Decision: evaluate on the last bar (one order per run)
+    ctx = StrategyContextV1(now_ts=str(last_bar.get("ts_min")), symbol=args.symbol, state={})
+    for st in strats:
+        fn = getattr(st, "on_bar", None) or getattr(st, "on_bar_1m", None)
+        if not fn:
+            continue
+        sig = fn(ctx, last_bar)
         if sig is None:
             continue
 
         sig = _ensure_stop(sig, ref_price=ref_price)
-        meta = sig.to_order_meta(strat_name=getattr(s, "name", "unknown"), strat_version=getattr(s, "version", "v?"), ref_price=ref_price)
+        meta = sig.to_order_meta(
+            strat_name=getattr(st, "name", st.__class__.__name__),
+            strat_version=getattr(st, "version", "v?"),
+            ref_price=ref_price,
+            now_ts=str(ctx.now_ts),
+            symbol=str(args.symbol),
+        )
         meta["market_metrics"] = mm
-
-
         meta = _apply_vol_confidence(meta, mm)
-        print(f"[SIGNAL] strat={getattr(s,'name','?')} side={sig.side} qty={sig.qty} stop={sig.stop_price} reason={sig.reason}")
+
+        sn = getattr(st, "name", st.__class__.__name__)
+        print(f"[SIGNAL] strat={sn} side={sig.side} qty={sig.qty} stop={sig.stop_price} reason={sig.reason}")
         r = wrap.place_order(
             symbol=args.symbol,
             side=sig.side,
@@ -226,10 +317,57 @@ def main():
             meta=meta,
         )
         print("[ORDER]", r)
-        # For v1 runner: one order per bar to keep behavior deterministic
-        return
+        return 0
 
     print("[INFO] no signal")
+    return 0
+def _fetch_recent_bars_1m(db: str, symbol: str, n: int):
+    """Return recent 1m bars ascending by ts_min. Best-effort compatible with existing schema."""
+    import sqlite3
+    con = sqlite3.connect(db)
+    con.row_factory = sqlite3.Row
+    try:
+        # Expect bars_1m(ts_min, symbol, o,h,l,c,v, n_trades, source) (or superset)
+        rows = con.execute(
+            """
+            SELECT ts_min, o, h, l, c, v, COALESCE(n_trades, 0) AS n_trades, COALESCE(source, '') AS source
+            FROM bars_1m
+            WHERE symbol = ?
+            ORDER BY ts_min DESC
+            LIMIT ?
+            """,
+            (symbol, int(max(0, n))),
+        ).fetchall()
+        rows = list(reversed(rows))
+        out = []
+        for r in rows:
+            out.append({
+                "ts_min": r["ts_min"],
+                "o": float(r["o"]) if r["o"] is not None else None,
+                "h": float(r["h"]) if r["h"] is not None else None,
+                "l": float(r["l"]) if r["l"] is not None else None,
+                "c": float(r["c"]) if r["c"] is not None else None,
+                "v": float(r["v"]) if r["v"] is not None else None,
+                "n_trades": int(r["n_trades"]) if r["n_trades"] is not None else 0,
+                "source": r["source"],
+            })
+        return out
+    finally:
+        con.close()
+
+
+# --- Learning Governance Hook (v18.1) ---
+LEARNING_MODE = env_mode(LearningMode.FROZEN)
+
+# Fail-safe: drift detector runs at runner start; any trigger freezes governance
+try:
+    _dr = run_drift_detector_v1()
+    if not _dr.ok:
+        # drift detector already froze governance state; keep runner conservative
+        LEARNING_MODE = LearningMode.FROZEN
+except Exception:
+    # ultra-conservative: on detector failure, freeze
+    LEARNING_MODE = LearningMode.FROZEN
 
 
 if __name__ == "__main__":

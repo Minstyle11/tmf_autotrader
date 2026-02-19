@@ -191,7 +191,7 @@ class RiskEngineV1:
                     {"per_trade_risk_ntd": per_trade_risk_ntd, "per_trade_max_loss_ntd": cfg.per_trade_max_loss_ntd},
                 )
 
-        
+
         # --- market-quality gates (optional; driven by meta) ---
         # Allow either meta.market_metrics dict or top-level meta keys.
         mm = meta.get("market_metrics") or {}

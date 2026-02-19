@@ -1,19 +1,28 @@
 # 專案進度總覽（自動計算）
-- 更新時間：2026-02-10 09:05:32
-- 專案總完成度：23.3% （已完成 24 / 103 項）
 
-**專案總完成度 / Overall completion:** 23.3%（已完成 24 / 103 項；未完成 79 項）
+<!-- AUTO_PROGRESS_START -->
+**專案總完成度 / Overall completion:** 28.0%（已完成 30 / 107 項；未完成 77 項）
+
+- done   : 20
+- doing  : 0
+- blocked: 0
+- todo   : 77
+- invalid_like: 0
+<!-- AUTO_PROGRESS_END -->
+**專案總完成度 / Overall completion:** 28.0%（已完成 30 / 107 項；未完成 77 項）
+
+- 更新時間：2026-02-20 01:52:00
+- 專案總完成度：28.0% （已完成 30 / 107 項；TODO 77 / DOING 0 / BLOCKED 0）
 
 <!-- AUTO:PROGRESS_BEGIN -->
-- 更新時間：2026-02-10 09:05:32
-- **TOTAL_TASKS:** 103
-- **DONE_TASKS:** 24
-- **DOING_TASKS:** 2
-- **BLOCKED_TASKS:** 0
-- **PCT:** 23.3%
+- **TOTAL:** 107
+- **TODO:** 77
+- **DOING:** 0
+- **DONE:** 30
+- **BLOCKED:** 0
+- **PCT:** 28.0%
+- **LAST_BOARD_UPDATE_AT:** 2026-02-20 01:52:00
 <!-- AUTO:PROGRESS_END -->
-
-
 ## 里程碑完成度
 - M0 Foundations：100.0% （已完成 4 / 4）
 - M1 Sim + Cost Model：100.0% （已完成 3 / 3）
@@ -21,17 +30,16 @@
 - M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
 
 ## 說明（快速讀法）
-- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
-- [ ] 進行中、[!] 阻塞、[x] 已完成。
+- 進行中、[!] 阻塞、[x] 已完成。
 
 # TMF AutoTrader Project Board (OFFICIAL)
 
-## Status Legend
-- [ ] TODO
-- [~] DOING
-- [x] DONE
-- [!] BLOCKED
 
+## Status Legend
+- ( ) TODO
+- (~) DOING
+- DONE
+- (!) BLOCKED
 
 
 ## Bible Linkage (OFFICIAL-LOCKED)
@@ -41,29 +49,39 @@
 - `TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md` sha256=`e4f51bf4a691987d343e53575244b6da13e5ef4cc20867b7e039e3370f377b71` headings=25
 - `TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md` sha256=`39714f5adf840b6cae8a67a8f81d2c5e258017820e9e2c21651422b83669d78b` headings=31
 
+## OS Modules — Completed (Auto)
+- [x] [TASK:M3-REPLAYOS-DRIFT-2e3de863] **Replay OS drift taxonomy (event-order/missing/parse) + artifacted report** (writes replay_report_latest.json/.md with diagnostics+drift_codes; gated by ops_audit_hardgate_v1)
+
 ## Milestones
 ### M0 Foundations
-- [x] Create repo skeleton + board + bible system + backup framework
-- [x] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
-- [x] Data store: schema v1 (events, bars, trades, orders, fills) + rotation
-- [x] Ops: runbook v1 + healthcheck v1 + auto-restart v1
+- [x] [TASK:M0-e0f96880] Create repo skeleton + board + bible system + backup framework
+- [x] [TASK:M0-10e13b4f] Broker connectivity: Shioaji login + quote subscribe (TMF/TX/MTX + 2330/2317/2454) + raw event recorder
+- [x] [TASK:M0-5737d1e6] Data store: schema v1 (events, bars, trades, orders, fills) + rotation
+- [x] [TASK:MISC-cd010ea0] Ops: runbook v1 + healthcheck v1 + auto-restart v1
 ### M1 Sim + Cost Model
-- [x] TAIFEX fee/tax model v1 (exchange fees + futures transaction tax + broker fee configurable)
-- [x] Paper OMS + matching engine v1 (market/limit, partial fill if possible)
-- [x] Slippage model v1 (conservative)
+- [x] [TASK:M1-ec5562d3] TAIFEX fee/tax model v1 (exchange fees + futures transaction tax + broker fee configurable)
+- [x] [TASK:M1-6664639c] Paper OMS + matching engine v1 (market/limit, partial fill if possible)
+- [x] [TASK:M1-36095ef6] Slippage model v1 (conservative)
 
 ### M2 Risk Engine v1 (Risk First)
-- [x] Pre-trade gates (DONE: stop-required + per-trade max loss + daily max loss + consecutive-loss cooldown + market-quality gates (spread/ATR/liquidity) + regressions; DONE: wired real market_metrics source (bidask->DB->market_metrics) + paper-live can be strict (policy pending))
-- [x] BidAsk schema normalization (bid/ask scalars derived from level-1 arrays; recorder+DB+market_metrics smoke PASS)
-- [x] In-trade controls (SL/TS/breakeven, time-stop, session-aware rules)
-- [x] System safety (disconnect handling, session state machine, expiry-day guards)
+- [x] [TASK:M2-a9935a52] Pre-trade gates (DONE: stop-required + per-trade max loss + daily max loss + consecutive-loss cooldown + market-quality gates (spread/ATR/liquidity) + regressions; DONE: wired real market_metrics source (bidask->DB->market_metrics) + paper-live can be strict (policy pending))
+- [x] [TASK:M2-18c47e4c] BidAsk schema normalization (bid/ask scalars derived from level-1 arrays; recorder+DB+market_metrics smoke PASS)
+- [x] [TASK:M2-4f83a238] In-trade controls (SL/TS/breakeven, time-stop, session-aware rules)
+- [x] [TASK:MISC-6ec017cf] System safety (disconnect handling, session state machine, expiry-day guards)
 
 ### M3 Strategy Base + Paper Live
-- [~] Trend strategy v1 (dual-side) + attribution logging
-- [ ] Mean-reversion v1 (dual-side) + attribution logging
-- [ ] Daily report v1 + auto diagnostics
+- [x] [TASK:M3-09a46d89] Trend strategy v1 (dual-side) + attribution logging
+- [x] [TASK:M3-557c7247] Mean-reversion v1 (dual-side) + attribution logging
+- [x] [TASK:M3-fee5f203] Daily report v1 + auto diagnostics (DONE: build_daily_report_v1 OK; DR_2026-02-12 md/json + sha256)
+
+- [ ] [TASK:M3-OS-1a2f3c4d] Latency+Backpressure OS module v1 (queue/lag/backpressure + throttle)
+- [ ] [TASK:M3-OS-2b3c4d5e] CostModel OS module v1 (fees/slippage sanity + execution-cost telemetry)
+- [ ] [TASK:M3-OS-3c4d5e6f] Stress Battery / Chaos Drills v1 (disconnect/latency/spread-spike + replay)
+- [ ] [TASK:M3-OS-4d5e6f70] Auto-Remediation + Runbook Drills v1 (auto-restart/kill-switch drill + evidence)
 
 ## Always-On Bibles (must obey)
+- docs/ops/PROJECT_BOARD_AUTOSYNC_BIBLE_v1.md  (BOARD AUTOSYNC / MUST-OBEY)
+- docs/ops/PROJECT_BOARD_AUTOSYNC_BIBLE_v1.md.sha256.txt
 - docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md  (CONSTITUTION / MUST-OBEY)
 - docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md.sha256.txt
 - docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md  (ONE-TRUTH / OVERRIDES ALL)
@@ -80,14 +98,14 @@
 - created_dirs: 12
 - created_files: 57
 - py_compile_errors: 0
-- next: implement v18 mainline OS modules (spec-diff stopper / reject taxonomy+policy / reconcile / replay / latency+backpressure / cost-model OS / stress battery / auto-remediation / drills).
+- next: implement v18 mainline OS modules (latency+backpressure / cost-model OS / stress battery / auto-remediation / drills).
 
 ## V18 - Execution Reject Taxonomy & Policy (M3)
 
-- [x] execution/reject_taxonomy.py (decision_from_verdict + policy mapping)
-- [x] execution/reject_policy.yaml (JSON-compatible YAML; no external deps)
-- [x] scripts/m3_regression_reject_policy_v1.sh (regression)
-- [x] Wire decision into PaperOMSRiskSafetyWrapperV1 / live runner (DONE: reject_policy + decision_from_verdict wired; m3 regression PASS; paper-live smoke PASS)
+- [x] [TASK:M3-REJECT-229a977a] execution/reject_taxonomy.py (decision_from_verdict + policy mapping)
+- [x] [TASK:M3-REJECT-171b1e47] execution/reject_policy.yaml (JSON-compatible YAML; no external deps)
+- [x] [TASK:M3-REJECT-5c17af4e] scripts/m3_regression_reject_policy_v1.sh (regression)
+- [x] [TASK:M3-REJECT-ca288b87] Wire decision into PaperOMSRiskSafetyWrapperV1 / live runner (DONE: reject_policy + decision_from_verdict wired; m3 regression PASS; paper-live smoke PASS)
 
 > 2026-02-02 22:27:20 OFFICIAL: M2 gates closure verified (risk+market-quality+integration smoke PASS); synthetic bidask filtered; offline smoke flag added.
 
@@ -97,7 +115,7 @@
 
 ### vv18_1 條款落地任務 / vv18_1 Compliance Tasks (AUTO)
 
-- 說明：由程式自動擷取 `TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md` 的標題與強制詞條款；完成後勾選 `- [x]`。如需調整映射，請走 OFFICIAL v18.x patch。
+- 說明：由程式自動擷取 `TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md` 的標題與強制詞條款；完成後勾選 [x]。如需調整映射，請走 OFFICIAL v18.x patch。
 
 - [ ] [TASK:M8-V18_1-01-74a39141] **3) **自動學習/自我改進的安全治理**（drift/非平穩/線上學習 = 必須“可控、可回退、可凍結”） / 3) **自動學習/自我改進的安全治理**（drift/非平穩/線上學習 = 必須“可控、可回退、可凍結”）**
 - [ ] [TASK:M8-V18_1-02-3c66f4ad] **A) 研究/回測：統計嚴謹性「硬闖關」補強（必做） / A) 研究/回測：統計嚴謹性「硬闖關」補強（必做）**
@@ -137,7 +155,7 @@
 
 ### vv18_2 條款落地任務 / vv18_2 Compliance Tasks (AUTO)
 
-- 說明：由程式自動擷取 `TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md` 的標題與強制詞條款；完成後勾選 `- [x]`。如需調整映射，請走 OFFICIAL v18.x patch。
+- 說明：由程式自動擷取 `TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md` 的標題與強制詞條款；完成後勾選 [x]。如需調整映射，請走 OFFICIAL v18.x patch。
 
 - [ ] [TASK:M8-V18_2-01-c090bde5] **0) 本 Patch 依據與新增參考來源（高負載摘要） / 0) 本 Patch 依據與新增參考來源（高負載摘要）**
 - [ ] [TASK:M8-V18_2-02-e77e81fa] **0.1 官方/產業規範（需納入程式設計假設） / 0.1 官方/產業規範（需納入程式設計假設）**
@@ -192,9 +210,8 @@
 - [x] RiskEngineV1: allow reduce-only close to bypass strict stop requirement (stop_reduceonly_bypass=1)
 - [x] RiskEngineV1: derive entry_price for MARKET/reduce-only when price is None (use meta.ref_price, else bid/ask)
 - [x] DB sanity: autoclose extra open trades (keep latest open per symbol); backup created: runtime/data/tmf_autotrader_v1.sqlite3.bak_sanity_autoclose_20260206_225703
-- [~] Wrapper return-type hardening: add TypeGuard/TypedDict (Order | RejectedOrder) and enforce caller-side match guard
-- [ ] Smoke scripts: never call PaperOMS.match() on REJECT dict; gate by is_order_obj / is_accepted_order()
-
+- [x] Wrapper return-type hardening: add TypeGuard/TypedDict (Order | RejectedOrder) and enforce caller-side match guard
+- [x] Smoke scripts: never call PaperOMS.match() on REJECT dict; gate by is_order_obj / is_accepted_order()
 - [2026-02-06 23:16] (DONE) PaperOMS.match hardguard: reject-dict -> TypeError (prevents AttributeError; clarifies caller contract)
 
 ## Recent Updates
@@ -214,4 +231,3 @@
 - [2026-02-07 11:58:16] ✅ SMOKE_SUITE: patched scripts/run_paper_live_smoke_suite_v1.py to persist kind correctly (syntax fixed; py_compile OK)
 - [2026-02-07 11:58:16] ✅ LaunchAgent: com.tmf_autotrader.paper_smoke_suite_v1 enabled; StartCalendarInterval=16:20; RunAtLoad=false
 - [2026-02-07 11:58:16] ✅ Bible: docs/ops/HEALTH_CHECKS_KIND_AND_SMOKE_SUITE_BIBLE_v1.md (+ sha256) created
-

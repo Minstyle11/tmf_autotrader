@@ -117,6 +117,20 @@ fi
 TS="$(date '+%F %T')"
 echo "[autorestart] $TS strict=$STRICT start" >> "$LOG_DIR/autorestart.out.log"
 
+# --- Market calendar gate (TAIFEX) ---
+# Avoid false alarms / self-heal loops during exchange holidays/weekends.
+# Bypass with TMF_AUTORESTART_FORCE=1 if you intentionally want to run anyway.
+if [ "${TMF_AUTORESTART_FORCE:-0}" != "1" ]; then
+  out="$(python3 scripts/ops_market_calendar_status_v1.py 2>/dev/null || true)"
+  if printf "%s\n" "$out" | grep -q "^closed=1$"; then
+    code="$(printf "%s\n" "$out" | sed -n "s/^code=//p" | head -n 1)"
+    reason="$(printf "%s\n" "$out" | sed -n "s/^reason=//p" | head -n 1)"
+    next="$(printf "%s\n" "$out" | sed -n "s/^next_open_day=//p" | head -n 1)"
+    echo "[autorestart] $TS MARKET_CLOSED ${code:-MARKET_CLOSED} ; ${reason:-} ; next_open_day=${next:-} ; exit 0" >> "$LOG_DIR/autorestart.out.log"
+    exit 0
+  fi
+fi
+
 set +e
 STRICT_SESSION="$STRICT" ./scripts/m0_healthcheck_v1.sh >"$LOG_DIR/autorestart.last_healthcheck.log" 2>&1
 RC=$?

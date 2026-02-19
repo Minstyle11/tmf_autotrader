@@ -18,26 +18,48 @@ class StrategySignalV1:
     # Attribution fields
     reason: str = ""
     confidence: float = 0.5  # 0..1
+    confidence_raw: Optional[float] = None  # raw (pre-adjust) confidence
     features: Dict[str, Any] = field(default_factory=dict)
     tags: Dict[str, Any] = field(default_factory=dict)
 
-    def to_order_meta(self, *, strat_name: str, strat_version: str, ref_price: Optional[float]) -> Dict[str, Any]:
+    def to_order_meta(self, *, strat_name: str, strat_version: str, ref_price: Optional[float], now_ts: Optional[str] = None, symbol: Optional[str] = None) -> Dict[str, Any]:
         meta: Dict[str, Any] = {}
         if ref_price is not None:
             meta["ref_price"] = float(ref_price)
         if self.stop_price is not None:
             meta["stop_price"] = float(self.stop_price)
 
+        # Signal snapshot for audit/replay (stable schema; JSON-serializable)
+        meta["signal"] = {
+            "side": str(self.side),
+            "qty": float(self.qty),
+            "order_type": str(self.order_type),
+            "price": (float(self.price) if self.price is not None else None),
+            "stop_price": (float(self.stop_price) if self.stop_price is not None else None),
+        }
+
         meta["strat"] = {
             "name": strat_name,
             "version": strat_version,
             "reason": self.reason,
             "confidence": float(self.confidence),
+            "confidence_raw": (float(self.confidence_raw) if (self.confidence_raw is not None) else None),
             "features": dict(self.features or {}),
             "tags": dict(self.tags or {}),
         }
-        return meta
+        # Runner audit context (optional but recommended for replay/reconcile)
+        if now_ts is not None:
+            meta.setdefault("audit", {})["now_ts"] = str(now_ts)
+        if symbol is not None:
+            meta.setdefault("audit", {})["symbol"] = str(symbol)
 
+        # Stable attribution schema (v1): keep small + JSON-serializable
+        meta["attribution_v1"] = {
+            "signal": dict(meta.get("signal") or {}),
+            "strat": dict(meta.get("strat") or {}),
+        }
+
+        return meta
 class StrategyContextV1:
     """Lightweight context carrier.
     Runner/engine can extend this over time without breaking strategies.

@@ -20,7 +20,7 @@ CHANGELOG_TAIL="$(tail -n 15 "$PROJ/docs/board/CHANGELOG.md" 2>/dev/null || true
 
 GIT_SUMMARY=""
 if command -v git >/dev/null 2>&1 && [ -d "$PROJ/.git" ]; then
-  GIT_SUMMARY="$(cd "$PROJ" && git status --porcelain=v1 2>/dev/null || true)"
+  GIT_SUMMARY="$(git -C "$PROJ" status --porcelain=v1 2>/dev/null || true)"
 fi
 
 NEXT_STEP_HEAD="$(sed -n "1,12p" "$NEXT_STEP" 2>/dev/null || true)"

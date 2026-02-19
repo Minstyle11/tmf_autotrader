@@ -49,12 +49,14 @@ def _parse_hhmm(s: str) -> time:
 
 
 def _today_ymd(now: Optional[datetime] = None) -> str:
-    now = now or datetime.now()
+    # Use local timezone to avoid TZ ambiguity during selftests / LaunchAgent runs.
+    now = now or datetime.now().astimezone()
     return now.strftime("%Y-%m-%d")
 
 
 def _in_session(cfg: SafetyConfigV1, now: Optional[datetime] = None) -> bool:
-    now = now or datetime.now()
+    # Use local timezone to avoid TZ ambiguity during selftests / LaunchAgent runs.
+    now = now or datetime.now().astimezone()
     o = _parse_hhmm(cfg.session_open_hhmm)
     c = _parse_hhmm(cfg.session_close_hhmm)
     tnow = now.time()
@@ -168,15 +170,44 @@ class SystemSafetyEngineV1:
         con.row_factory = sqlite3.Row
         return con
 
+    def _events_src(self, con: sqlite3.Connection) -> str:
+        """Prefer sane timestamp view if present; fallback to raw events."""
+        try:
+            r = con.execute(
+                "SELECT 1 FROM sqlite_schema WHERE type='view' AND name='events_sane' LIMIT 1"
+            ).fetchone()
+            return 'events_sane' if r else 'events'
+        except Exception:
+            # Older SQLite may not expose sqlite_schema; fallback to sqlite_master
+            try:
+                r = con.execute(
+                    "SELECT 1 FROM sqlite_master WHERE type='view' AND name='events_sane' LIMIT 1"
+                ).fetchone()
+                return 'events_sane' if r else 'events'
+            except Exception:
+                return 'events'
+
     def _latest_event_by_code(self, con: sqlite3.Connection, *, kind: str, code: str, scan_limit: int = 2000, reject_synthetic: bool = True) -> Optional[Tuple[int, str, Dict[str, Any]]]:
         rows = con.execute(
-            "SELECT id, ts, payload_json FROM events WHERE kind=? ORDER BY id DESC LIMIT ?",
+            "SELECT id, ts, payload_json, source_file FROM %s WHERE kind=? ORDER BY id DESC LIMIT ?" % (self._events_src(con),),
             (str(kind), int(scan_limit)),
         ).fetchall()
         for r in rows:
             payload = _loads(r["payload_json"])
             if str(payload.get("code", "")) == str(code):
                 if reject_synthetic and bool(payload.get("synthetic")):
+                    continue
+                # Also reject ops_seed_* rows as synthetic truth-source (seed must not be used for safety freshness)
+                try:
+                    sf = r["source_file"] if isinstance(r, dict) or hasattr(r, "__getitem__") else None
+                except Exception:
+                    sf = None
+                # DEV/SELFTEST escape hatch:
+                # Allow ops_seed_* bidask only when explicitly enabled AND never during session.
+                allow_ops_seed = _env_truthy("TMF_DEV_ALLOW_OPS_SEED_BIDASK", "0")
+                if allow_ops_seed and _in_session(self.cfg):
+                    allow_ops_seed = False
+                if reject_synthetic and str(sf or "").startswith("ops_seed_") and (not allow_ops_seed):
                     continue
                 return (int(r["id"]), str(r["ts"]), payload)
         return None
@@ -204,138 +235,141 @@ class SystemSafetyEngineV1:
             return None
 
     def check_pre_trade(self, *, meta: Optional[Dict[str, Any]] = None) -> SafetyVerdictV1:
-            meta = meta or {}
-            cfg = self.cfg
+        meta = meta or {}
+        cfg = self.cfg
 
-            # 0) global safety-state guards (cooldown / kill-switch)
-            st_kill = self._get_state("kill") or {}
-            if bool(st_kill.get("enabled")):
-                return SafetyVerdictV1(
-                    False,
-                    "SAFETY_KILL_SWITCH",
-                    "kill-switch enabled; trading blocked",
-                    {"kill": st_kill},
-                )
+        # 0) global safety-state guards (cooldown / kill-switch)
+        st_kill = self._get_state("kill") or {}
+        if bool(st_kill.get("enabled")):
+            return SafetyVerdictV1(
+                False,
+                "SAFETY_KILL_SWITCH",
+                "kill-switch enabled; trading blocked",
+                {"kill": st_kill},
+            )
 
-            st_cd = self._get_state("cooldown") or {}
+        st_cd = self._get_state("cooldown") or {}
+        try:
+            until = float(st_cd.get("until_epoch", 0) or 0)
+        except Exception:
+            until = 0.0
+        now_ep = datetime.now().timestamp()
+        if until > now_ep:
+            return SafetyVerdictV1(
+                False,
+                "SAFETY_COOLDOWN_ACTIVE",
+                "cooldown active; trading blocked temporarily",
+                {"cooldown": st_cd, "now_epoch": now_ep},
+            )
+
+        # A) Manual halt day (expiry/maintenance)
+        if _is_halt_day(cfg):
+            return SafetyVerdictV1(
+                False,
+                "SAFETY_HALT_DAY",
+                "today is configured as a halt/expiry/maintenance day; trading blocked",
+                {"today": _today_ymd(), "halt_dates_csv": cfg.halt_dates_csv},
+            )
+
+        # B) Session guard (optional)
+        if cfg.require_session_open == 1 and (not _in_session(cfg)):
+            return SafetyVerdictV1(
+                False,
+                "SAFETY_SESSION_CLOSED",
+                "session guard active and current time is outside session window",
+                {"open_hhmm": cfg.session_open_hhmm, "close_hhmm": cfg.session_close_hhmm},
+            )
+
+        # C) Feed staleness guard from DB events (truth source)
+        if cfg.require_recent_bidask == 1:
+            con = self._con()
             try:
-                until = float(st_cd.get("until_epoch", 0) or 0)
-            except Exception:
-                until = 0.0
-            now_ep = datetime.now().timestamp()
-            if until > now_ep:
-                return SafetyVerdictV1(
-                    False,
-                    "SAFETY_COOLDOWN_ACTIVE",
-                    "cooldown active; trading blocked temporarily",
-                    {"cooldown": st_cd, "now_epoch": now_ep},
-                )
-    
-            # A) Manual halt day (expiry/maintenance)
-            if _is_halt_day(cfg):
-                return SafetyVerdictV1(
-                    False,
-                    "SAFETY_HALT_DAY",
-                    "today is configured as a halt/expiry/maintenance day; trading blocked",
-                    {"today": _today_ymd(), "halt_dates_csv": cfg.halt_dates_csv},
-                )
-    
-            # B) Session guard (optional)
-            if cfg.require_session_open == 1 and (not _in_session(cfg)):
-                return SafetyVerdictV1(
-                    False,
-                    "SAFETY_SESSION_CLOSED",
-                    "session guard active and current time is outside session window",
-                    {"open_hhmm": cfg.session_open_hhmm, "close_hhmm": cfg.session_close_hhmm},
-                )
-    
-            # C) Feed staleness guard from DB events (truth source)
-            if cfg.require_recent_bidask == 1:
-                con = self._con()
-                try:
-                    ev = self._latest_event_by_code(con, kind=cfg.bidask_kind, code=cfg.fop_code, reject_synthetic=bool(getattr(cfg,"reject_synthetic_bidask",1)))
-                finally:
-                    con.close()
-    
-                if not ev:
-                    return SafetyVerdictV1(
-                        False,
-                        "SAFETY_BIDASK_MISSING",
-                        "no bidask event found in DB for required fop_code",
-                        {"bidask_kind": cfg.bidask_kind, "fop_code": cfg.fop_code},
-                    )
-    
-                event_id, ts, payload = ev
+                ev = self._latest_event_by_code(con, kind=cfg.bidask_kind, code=cfg.fop_code, reject_synthetic=bool(getattr(cfg,"reject_synthetic_bidask",1)))
+            finally:
+                con.close()
 
-                # Freshness should be based on receiver time (recv_ts) if available; ts can be market/event time.
-                ts_used = None
-                try:
-                    if isinstance(payload, dict):
-                        ts_used = payload.get("recv_ts") or payload.get("ingest_ts") or ts
-                    else:
-                        ts_used = ts
-                except Exception:
+            if not ev:
+                return SafetyVerdictV1(
+                    False,
+                    "SAFETY_BIDASK_MISSING",
+                    "no bidask event found in DB for required fop_code",
+                    {"bidask_kind": cfg.bidask_kind, "fop_code": cfg.fop_code},
+                )
+
+            event_id, ts, payload = ev
+
+            # Freshness should be based on receiver time (recv_ts) if available; ts can be market/event time.
+            ts_used = None
+            try:
+                if isinstance(payload, dict):
+                    ts_used = payload.get("recv_ts") or payload.get("ingest_ts") or ts
+                else:
                     ts_used = ts
+            except Exception:
+                ts_used = ts
 
-                age = self._age_seconds(str(ts_used))
-                if age is None:
-                    return SafetyVerdictV1(
-                        False,
-                        "SAFETY_BIDASK_TS_INVALID",
-                        "cannot parse bidask event ts",
-                        {"bidask_event_id": event_id, "ts": ts, "ts_used": str(ts_used)},
-                    )
+            age = self._age_seconds(str(ts_used))
+            if age is None:
+                return SafetyVerdictV1(
+                    False,
+                    "SAFETY_BIDASK_TS_INVALID",
+                    "cannot parse bidask event ts",
+                    {"bidask_event_id": event_id, "ts": ts, "ts_used": str(ts_used)},
+                )
 
-                # Allow dev override for regression/smoke: env > meta > cfg
-                try:
-                    meta_max = None
-                    if isinstance(meta, dict):
-                        meta_max = meta.get("max_bidask_age_seconds")
-                    env_max = os.getenv("TMF_DEV_MAX_BIDASK_AGE_SECONDS", "").strip()
-                    if env_max != "":
-                        max_age = float(env_max)
-                    elif meta_max is not None:
-                        max_age = float(meta_max)
-                    else:
-                        max_age = float(cfg.max_bidask_age_seconds)
-                except Exception:
+            # Allow dev override for regression/smoke: env > meta > cfg
+            try:
+                meta_max = None
+                if isinstance(meta, dict):
+                    meta_max = meta.get("max_bidask_age_seconds")
+                env_max = os.getenv("TMF_DEV_MAX_BIDASK_AGE_SECONDS", "").strip()
+                if env_max != "":
+                    max_age = float(env_max)
+                elif meta_max is not None:
+                    max_age = float(meta_max)
+                else:
                     max_age = float(cfg.max_bidask_age_seconds)
+            except Exception:
+                max_age = float(cfg.max_bidask_age_seconds)
 
 
-                allow_stale = _env_truthy("TMF_DEV_ALLOW_STALE_BIDASK", "0")
-                # HARDGUARD: Never allow stale override during session.
-                # This prevents accidental in-session trading with stale quotes.
-                if allow_stale and _in_session(cfg):
-                    allow_stale = False
-                    # (optional) could log; keep engine pure and let caller print env warnings.
-                if age > float(max_age):
-                    if allow_stale:
-                        return SafetyVerdictV1(
-                            True,
-                            "OK_DEV_ALLOW_STALE",
-                            f"bidask feed stale but allowed by TMF_DEV_ALLOW_STALE_BIDASK=1: age_sec={age:.1f} > max={max_age}",
-                            {
-                                "bidask_event_id": event_id,
-                                "bidask_ts": ts,
-                                "age_seconds": age,
-                                "max_bidask_age_seconds": float(max_age),
-                                "ts_used": str(ts_used),
-                                "fop_code": cfg.fop_code,
-                                "dev_allow_stale": 1,
-                            },
-                        )
+            allow_stale = _env_truthy("TMF_DEV_ALLOW_STALE_BIDASK", "0")
+            # HARDGUARD: Never allow stale override during session.
+            # This prevents accidental in-session trading with stale quotes.
+            if allow_stale and _in_session(cfg):
+                allow_stale = False
+                # (optional) could log; keep engine pure and let caller print env warnings.
+            if age > float(max_age):
+                if allow_stale:
                     return SafetyVerdictV1(
-                        False,
-                        "SAFETY_FEED_STALE",
-                        f"bidask feed stale: age_sec={age:.1f} > max={max_age}",
+                        True,
+                        "OK_DEV_ALLOW_STALE",
+                        f"bidask feed stale but allowed by TMF_DEV_ALLOW_STALE_BIDASK=1: age_sec={age:.1f} > max={max_age}",
                         {
                             "bidask_event_id": event_id,
                             "bidask_ts": ts,
                             "age_seconds": age,
                             "max_bidask_age_seconds": float(max_age),
-                                "ts_used": str(ts_used),
+                            "ts_used": str(ts_used),
                             "fop_code": cfg.fop_code,
+                            "dev_allow_stale": 1,
                         },
                     )
-    
-            return SafetyVerdictV1(True, "OK", "system safety pre-trade pass", {"cfg": asdict(cfg)})
+                return SafetyVerdictV1(
+                    False,
+                    "SAFETY_FEED_STALE",
+                    f"bidask feed stale: age_sec={age:.1f} > max={max_age}",
+                    {
+                        "bidask_event_id": event_id,
+                        "bidask_ts": ts,
+                        "age_seconds": age,
+                        "max_bidask_age_seconds": float(max_age),
+                            "ts_used": str(ts_used),
+                        "fop_code": cfg.fop_code,
+                    },
+                )
+
+        return SafetyVerdictV1(True, "OK", "system safety pre-trade pass", {"cfg": asdict(cfg)})
+
+# Backward-compatible alias (do not remove)
+SystemSafetyV1 = SystemSafetyEngineV1

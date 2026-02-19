@@ -73,9 +73,9 @@ def main():
 
     print("[INFO] logging in ...")
     if api_key and secret_key:
-        api.login(api_key=api_key, secret_key=secret_key)
+        api.login(api_key=api_key, secret_key=secret_key, subscribe_trade=True)
     elif pid and pwd:
-        api.login(person_id=pid, passwd=pwd)
+        api.login(person_id=pid, passwd=pwd, subscribe_trade=True)
     else:
         die("Missing credentials. Set SHIOAJI_API_KEY & SHIOAJI_SECRET_KEY in configs/secrets/shioaji.env")
 

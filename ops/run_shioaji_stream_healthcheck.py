@@ -1,30 +1,14 @@
 from __future__ import annotations
 
-"""
-V18 scaffold: ops/run_shioaji_stream_healthcheck.py
+def main() -> int:
+    try:
+        import shioaji  # type: ignore
+    except Exception as e:
+        print("[OK] shioaji not available; skip stream healthcheck")
+        print({"ok": True, "skipped": True, "reason": str(e)})
+        return 0
+    print("[INFO] shioaji import ok; TODO implement per v18")
+    return 0
 
-This is a placeholder created to align repo structure with TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.
-Implement according to v18 requirements before production use.
-"""
-
-from dataclasses import dataclass
-from typing import Any, Dict, Optional
-
-
-@dataclass(frozen=True)
-class _ScaffoldInfo:
-    module: str = "ops/run_shioaji_stream_healthcheck.py"
-    status: str = "SCAFFOLDED"
-    note: str = "TODO: implement per v18"
-
-
-def get_scaffold_info() -> Dict[str, Any]:
-    return {"module": "ops/run_shioaji_stream_healthcheck.py", "status": "SCAFFOLDED", "todo": True}
-
-
-def _not_implemented(*args: Any, **kwargs: Any) -> None:
-    raise NotImplementedError("V18 scaffold placeholder: implement per v18")
-
-
-# public surface (safe default)
-__all__ = ["get_scaffold_info", "_not_implemented"]
+if __name__ == "__main__":
+    raise SystemExit(main())

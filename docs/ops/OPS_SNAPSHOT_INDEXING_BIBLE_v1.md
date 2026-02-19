@@ -19,7 +19,7 @@
    - 若是索引自身（OPS_INDEX）有變動，也要再做一次 OPS_INDEX 的 OFFICIAL snapshot（閉環）
 4) 更新 `docs/board/PROJECT_BOARD.md`
    - 插入/勾選一條 `[TASK:PM]`，描述清楚「做了什麼 snapshot」，並附上 md 路徑
-5) 執行 `./scripts/pm_refresh_board.sh <tag>` 讓 header 統計立即更新
+5) 執行 `scripts/pm_refresh_board_canonical.sh <tag>` 讓 header 統計立即更新
 6) 最後 smoke：
    - grep OPS_INDEX 是否含新條目
    - grep PROJECT_BOARD 是否含 TASK

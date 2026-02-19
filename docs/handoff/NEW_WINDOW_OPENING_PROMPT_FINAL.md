@@ -4,17 +4,30 @@
 
 ```text
 # 專案進度總覽（自動計算）
-- 更新時間：2026-02-08 21:54:15
-- 專案總完成度：23.4% （已完成 25 / 107 項）
 
-**專案總完成度 / Overall completion:** 23.4%（已完成 25 / 107 項；未完成 82 項）
+<!-- AUTO_PROGRESS_START -->
+**專案總完成度 / Overall completion:** 28.0%（已完成 30 / 107 項；未完成 77 項）
+
+- done   : 20
+- doing  : 0
+- blocked: 0
+- todo   : 77
+- invalid_like: 0
+<!-- AUTO_PROGRESS_END -->
+**專案總完成度 / Overall completion:** 28.0%（已完成 30 / 107 項；未完成 77 項）
+
+- 更新時間：2026-02-20 01:52:00
+- 專案總完成度：28.0% （已完成 30 / 107 項；TODO 77 / DOING 0 / BLOCKED 0）
 
 <!-- AUTO:PROGRESS_BEGIN -->
-- **TOTAL_TASKS:** 107
-- **DONE_TASKS:** 25
-- **PCT:** 23.4%
+- **TOTAL:** 107
+- **TODO:** 77
+- **DOING:** 0
+- **DONE:** 30
+- **BLOCKED:** 0
+- **PCT:** 28.0%
+- **LAST_BOARD_UPDATE_AT:** 2026-02-20 01:52:00
 <!-- AUTO:PROGRESS_END -->
-
 ## 里程碑完成度
 - M0 Foundations：100.0% （已完成 4 / 4）
 - M1 Sim + Cost Model：100.0% （已完成 3 / 3）
@@ -22,30 +35,14 @@
 - M3 Strategy Base + Paper Live：42.9% （已完成 3 / 7）
 
 ## 說明（快速讀法）
-- 看「專案總完成度」掌握全局；看「里程碑完成度」掌握目前在哪一段。
-- [ ] 進行中、[!] 阻塞、[x] 已完成。
+- 進行中、[!] 阻塞、[x] 已完成。
 
 # TMF AutoTrader Project Board (OFFICIAL)
-
-## Status Legend
-- [ ] TODO
-- [~] DOING
-- [x] DONE
-- [!] BLOCKED
-
-
-
-## Bible Linkage (OFFICIAL-LOCKED)
-
-- Last refresh: 2026-02-06T08:18:13
 ```
 
 ## Latest changes (Changelog tail)
 
 ```text
-- [2026-02-04 19:50:23] pm_tick
-- [2026-02-04 19:55:23] pm_tick
-- [2026-02-04 20:00:24] pm_tick
 - [2026-02-04 20:05:24] pm_tick
 - [2026-02-04 20:10:25] pm_tick
 - [2026-02-04 20:15:25] pm_tick
@@ -58,163 +55,220 @@
 - [2026-02-04 20:40:27] pm_tick
 - [2026-02-04 20:45:27] pm_tick
 - [2026-02-04 20:50:28] pm_tick
+- [2026-02-10 15:17:35] Auto-verify PROJECT_BOARD + handoff artifacts
+- [2026-02-10 17:08:53] Auto: verify PROJECT_BOARD after independent autoprog patch
+- [2026-02-10 23:31:08] M3: LIVE snapshot OK (non-synth/non-ops_seed bidask+tick; SystemSafetyEngineV1 OK; market_metrics non-empty) + PROJECT_BOARD autoprog reconciled (25/107=23.4%)
 ```
 
 ## Working tree (git status --porcelain)
 
 ```text
-A  "docs/_inbox/tmf_autotrader\345\260\210\346\241\210 - \346\206\262\346\263\225\347\264\232\350\246\217\347\257\204.rtf"
-A  docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md
-A  docs/bibles/TMF_AUTOTRADER_CONSTITUTION_BIBLE_v1.md.sha256.txt
+AM .editorconfig
+AM .gitattributes
+M  .githooks/pre-commit
+M  .githooks/pre-push
+A  .github/workflows/precommit.yml
+M  .gitignore
+AM .pre-commit-config.yaml
+M  MANIFEST_SHA256_ALL_FILES.txt
+M  broker/shioaji_adapter.py
+M  broker/shioaji_callbacks.py
+M  broker/shioaji_preflight.py
+M  "docs/_inbox/tmf_autotrader\345\260\210\346\241\210 - \346\206\262\346\263\225\347\264\232\350\246\217\347\257\204.rtf"
+M  docs/bibles/02_OPS_HARDGATE_PACK_BIBLE_v1.md
+M  docs/bibles/HANDOFF_SOP_OFFICIAL_BIBLE_v1.md
+A  docs/bibles/PROJECT_BOARD_AUTOSYNC_CONSTITUTION_BIBLE_v1.md
+A  docs/bibles/PROJECT_BOARD_AUTOSYNC_CONSTITUTION_BIBLE_v1.md.sha256.txt
+A  docs/bibles/PROJECT_BOARD_AUTO_PROGRESS_BIBLE_v1.md
+A  docs/bibles/PROJECT_BOARD_AUTO_PROGRESS_BIBLE_v1.md.sha256.txt
+A  docs/bibles/TMF_AUTOTRADER_CONSTITUTION_RULES_v1.rtf
+A  docs/bibles/TMF_AUTOTRADER_CONSTITUTION_RULES_v1.rtf.sha256.txt
 M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md
-M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
-A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
-A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
-A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
-A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
-A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
-A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md.sha256.txt
-A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
-A  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md.sha256.txt
-A  docs/board/BIBLES_INDEX_v18x.json
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+M  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_3_PATCH.md
+A  docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_3_PATCH.md.sha256.txt
+M  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_1_PATCH.md
+M  docs/bibles/patches/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18_2_PATCH.md
+M  docs/board/BIBLES_INDEX_v18x.json
 M  docs/board/CHANGELOG.md
 MM docs/board/PROJECT_BOARD.md
+A  docs/board/PROJECT_BOARD.md.sha256.txt
+M  docs/board/REPO_ROOT_HYGIENE_REPORT_20260201_234927.json
+M  docs/board/REPO_ROOT_HYGIENE_REPORT_20260201_234927.md
+M  docs/board/V18_ALIGN_SWEEP_REPORT_20260201_203308.json
 MM docs/handoff/HANDOFF_LOG.md
 MM docs/handoff/NEW_WINDOW_OPENING_PROMPT_DRAFT.md
 MM docs/handoff/NEW_WINDOW_OPENING_PROMPT_FINAL.md
-A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md
-A  docs/ops/DAILY_FINANCE_CLOSE_PACK_BIBLE_v1.md.sha256.txt
-A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md
-A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120225.md.sha256.txt
-A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md
-A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_120731.md.sha256.txt
-A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md
-A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260204_161004.md.sha256.txt
-A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md
-A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260205_161002.md.sha256.txt
-A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260206_161001.md
-A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260206_161001.md.sha256.txt
-A  docs/ops/HEALTH_CHECKS_KIND_AND_SMOKE_SUITE_BIBLE_v1.md
-A  docs/ops/HEALTH_CHECKS_KIND_AND_SMOKE_SUITE_BIBLE_v1.md.sha256.txt
-M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md
-M  docs/ops/M2_REGRESSION_SUITE_BIBLE_v1.md.sha256.txt
-AM docs/ops/OPS_INDEX.md
-A  docs/ops/OPS_INDEX.md.sha256.txt
-A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
-A  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md.sha256.txt
-A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
-A  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md.sha256.txt
-A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md
-A  docs/ops/PM_LOGROTATE_CLOSEPACK_ALLOWLIST_OFFICIAL_SNAPSHOT_20260204_122807.md.sha256.txt
-A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
-A  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md.sha256.txt
-A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
-A  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md.sha256.txt
-AM docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md
-A  docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260210_161003.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260210_161003.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260211_193915.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260211_193915.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260212_161004.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260212_161004.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260212_172850.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260212_172850.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260212_173159.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260212_173159.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260213_161001.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260213_161001.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260214_161532.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260214_161532.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260215_161005.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260215_161005.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260216_161004.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260216_161004.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260217_161003.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260217_161003.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260218_161007.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260218_161007.md.sha256.txt
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260219_161005.md
+A  docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260219_161005.md.sha256.txt
+M  docs/ops/FOP_KEEPFRESH_GUARD_ACCEPTANCE_2026-02-09.md
+M  docs/ops/HEALTH_CHECKS_KIND_AND_SMOKE_SUITE_BIBLE_v1.md
+M  docs/ops/LAUNCHAGENT_ZSH_ENTRYPOINT_HAZARDS_BIBLE_v1.md
+AM docs/ops/LEARNING_GOVERNANCE_V1.md
+M  docs/ops/OPS_INDEX.md
+M  docs/ops/OPS_INDEX_OFFICIAL_SNAPSHOT_20260204_114806.md
+M  docs/ops/OPS_SNAPSHOT_INDEXING_BIBLE_v1.md
+M  docs/ops/PM_TICK_LOGROTATE_OFFICIAL_SNAPSHOT_20260204_110006.md
+M  docs/ops/PM_TICK_LOGROTATE_RUNLOG_OFFICIAL_SNAPSHOT_20260204_112536.md
+A  docs/ops/PROJECT_BOARD_AUTOSYNC_BIBLE_v1.md
+A  docs/ops/PROJECT_BOARD_AUTOSYNC_BIBLE_v1.md.sha256.txt
+M  docs/ops/PROJECT_BOARD_GOVERNANCE_BIBLE_v1.md
+M  docs/ops/RISK_GATES_AUDIT_BIBLE_v1.md
+A  docs/ops/TAIFEX_MWP_BIBLE_v1.md
+A  docs/ops/TAIFEX_MWP_BIBLE_v1.md.sha256.txt
+M  docs/ops/ULTRA_ZERO_GAP_HANDOFF_BIBLE_v1.md
+M  docs/runbooks/OPS_RUNBOOK_v1.md
 M  execution/reject_policy.yaml
-A  execution/taifex_preflight_v1.py
-M  m3_mainline_runner_v1.sh
-MM runtime/handoff/state/latest_state.json
-A  scripts/build_daily_finance_close_pack_v1.sh
- M scripts/gen_new_window_opening_prompt_ultra_zh.py
-M  scripts/handoff_pack_on_demand_v1.sh
-M  scripts/handoff_state_snapshot_v1.sh
+M  execution/reject_taxonomy.py
+M  execution/taifex_preflight_v1.py
+A  execution/tw_market_calendar_v1.py
+A  execution/tw_market_holidays_2026.json
+M  ops/reconcile/reconcile_engine.py
+A  ops/rejects/reject_stats_from_events_v1.py
+M  ops/replay/replay_runner.py
+M  ops/run_shioaji_api_test_report.py
+M  ops/run_shioaji_stream_healthcheck.py
+ M repo/docs/bibles/HANDOFF_SOP_OFFICIAL_BIBLE_v1.md
+ M repo/docs/runbooks/HANDOFF_SOP_OFFICIAL_v2.md
+ M runtime/handoff/state/latest_state.json
+M  scripts/_setup_backup_and_pm.sh
+A  scripts/analyze_stop_required_v1.py
+A  scripts/board_canonical_counts_v1.py
+A  scripts/board_count_m6_status_outside_canonical_v1.py
+A  scripts/board_invalid_like_fixlist_v2.py
+A  scripts/board_progress_from_block_v1.py
+A  scripts/board_rebuild_header_from_task_truth_v1.py
+A  scripts/board_sync_header_to_canonical_v1.py
+A  scripts/board_sync_v1.py
+A  scripts/board_sync_v2.py
+A  scripts/board_task_audit_v1.py
+A  scripts/build_daily_report_v1.py
+A  scripts/build_rejection_stats_v1.py
+M  scripts/fop_keepfresh_guard.sh
+M  scripts/gen_new_window_opening_prompt_ultra_zh.py
+M  scripts/handoff_tick.sh
+A  scripts/hooks/board_guard_precommit.sh
+M  scripts/inspect_contracts_ready_and_find_txf_family.py
+M  scripts/inspect_futures_contracts.py
+M  scripts/inspect_index_futures_group_keys.py
+M  scripts/m0_fix_jsonl_newline_and_smoke.sh
 M  scripts/m0_ops_autorestart_v1.sh
-A  scripts/m2_regression_healthchecks_kind_v1.sh
+M  scripts/m0_patch_recorder_payload_serialize_v2.sh
+M  scripts/m0_patch_recorder_sessionstart_and_smoke.sh
+M  scripts/m0_verify_recorder_and_update_board.sh
 M  scripts/m3_mainline_runner_v1.sh
-A  scripts/m3_regression_paper_live_smoke_v1.sh
-A  scripts/m3_regression_taifex_preflight_v1.sh
-A  scripts/m3_regression_taifex_split_v1.sh
-A  scripts/m6_update_project_board_v1.sh
-A  scripts/m8_update_board_from_patches_v1.py
+M  scripts/m3_regression_audit_replay_os_v1.sh
+A  scripts/m3_regression_cost_model_os_v1.sh
+A  scripts/m3_regression_healthchecks_smoke_summary_v1.sh
+A  scripts/m3_regression_offsession_allow_stale_v1.sh
+M  scripts/m3_regression_paper_live_smoke_combo_v1.sh
+A  scripts/m3_regression_reject_stats_v1.sh
+M  scripts/m3_regression_taifex_split_v1.sh
+A  scripts/m6_count_overall_outside_canonical_v1.py
+A  scripts/m8_regression_taifex_orderguard_v1.sh
+A  scripts/m8_regression_taifex_orderguard_v1_post.sh
+M  scripts/m8_update_board_from_patches_v1.py
 M  scripts/mk_windowpack_ultra.sh
-A  scripts/oneshot_hardgate_verify_ultra.py
+A  scripts/oneshot_hardgate_verify_windowpack_ultra_v1.py
 M  scripts/ops_audit_hardgate_v1.sh
-A  scripts/ops_backup_repo_to_external_v1.sh
-A  scripts/ops_seed_bidask_now_v1.py
+M  scripts/ops_env_rebuild_hardgate_v1.sh
+A  scripts/ops_live_snapshot_v1.py
+A  scripts/ops_mark_board_tasks_done_v1.py
+A  scripts/ops_market_calendar_status_v1.py
+M  scripts/ops_new_window_oneshot_hardgate_v1.sh
+M  scripts/ops_seed_bidask_now_v1.py
+M  scripts/ops_seed_tick_now_v1.py
+A  scripts/ops_untracked_triage_v1.py
+A  scripts/ops_web_research_evidence_hardgate_v1.sh
 M  scripts/paper_live_integration_smoke_v1.sh
-A  scripts/pm_log_rotate_v1.sh
+M  scripts/patch_recorder_use_groupkey.sh
+M  scripts/patch_shioaji_login_token.sh
 M  scripts/pm_refresh_board.sh
-A  scripts/pm_refresh_board_v2.py
-M  scripts/pm_tick.sh
-A  scripts/run_daily_finance_close_pack_daily_v1.sh
-AM scripts/run_paper_live_smoke_suite_v1.py
-A  scripts/run_paper_live_v1.py
-A  scripts/smoke_all_v1.sh
-A  scripts/verify_pm_refresh_board_v1.sh
-MM src/broker/shioaji_recorder.py
-M  src/data/build_bars_1m_v1.py
-M  src/data/store_sqlite_v1.py
-M  src/market/market_metrics_from_db_v1.py
-MM src/oms/paper_oms_risk_safety_wrapper_v1.py
-M  src/oms/paper_oms_v1.py
-MM src/oms/run_paper_live_v1.py
-A  src/ops/board_mark_doing_v1.py
-A  src/ops/require_bibles_v1.py
+A  scripts/pm_refresh_board_and_verify.sh
+A  scripts/pm_refresh_board_canonical.sh
+M  scripts/pm_refresh_board_v2.py
+A  scripts/project_board_guard_v2.py
+M  scripts/run_daily_finance_close_pack_daily_v1.sh
+A  scripts/run_daily_report_v1.sh
+M  scripts/run_paper_live_smoke_suite_v1.py
+M  scripts/run_recorder.sh
+M  scripts/setup_git_hooks_v1.sh
+M  scripts/setup_m0_recorder.sh
+M  scripts/update_project_board_progress_v2.py
+M  scripts/verify_pm_refresh_board_v1.sh
+ M snapshots/spec_diff/spec_diff_report_diff.md
+ M snapshots/spec_diff/spec_diff_report_latest.md
+M  src/broker/shioaji_recorder.py
+M  src/cost/cost_model_v1.py
+A  src/execution/order_result_types.py
+A  src/market/taifex_calendar_v1.py
+M  src/oms/paper_oms_risk_safety_wrapper_v1.py
+M  src/oms/paper_oms_risk_wrapper_v1.py
+M  src/oms/run_paper_live_v1.py
+A  src/ops/__init__.py
+A  src/ops/latency/__init__.py
+A  src/ops/latency/backpressure_governor.py
+A  src/ops/latency/latency_budget.py
+A  src/ops/learning/drift_detector_v1.py
+A  src/ops/learning/governance_v1.py
+A  src/research/run_stat_gate_report_v1.py
+A  src/research/stat_gate_v1.py
 M  src/risk/risk_engine_v1.py
-MM src/safety/system_safety_v1.py
-AM src/sim/run_strategies_paper_loop_v1.py
-AM src/sim/run_strategies_paper_v1.py
-A  src/strat/__init__.py
-AM src/strat/mean_reversion_v1.py
-A  src/strat/strategy_base_v1.py
-AM src/strat/trend_v1.py
-?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260207_161204.md
-?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260207_161204.md.sha256.txt
-?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260208_161001.md
-?? docs/ops/DAILY_FINANCE_CLOSE_PACK_OFFICIAL_SNAPSHOT_20260208_161001.md.sha256.txt
-?? docs/ops/POWER_POLICY_STAGE_v1.md
-?? docs/ops/POWER_POLICY_STAGE_v1.md.sha256.txt
-?? scripts/m3_regression_paper_live_smoke_combo_v1.sh
-?? scripts/m3_regression_spec_diff_stopper_v1.sh
-?? scripts/m3_regression_suite_v1.sh
-?? scripts/ops_seed_tick_now_v1.py
-?? snapshots/m3/
-?? src/execution/
-?? src/tools/
+M  src/safety/system_safety_v1.py
+M  src/sim/run_strategies_paper_loop_v1.py
+M  src/sim/run_strategies_paper_v1.py
+M  src/strat/mean_reversion_v1.py
+M  src/strat/strategy_base_v1.py
+M  src/strat/trend_v1.py
+A  src/tools/ops_seed_bidask_now_v1.py
+A  tmf_policy_regress_bundle_20260219.tgz
+A  tmf_policy_regress_bundle_20260219.tgz.sha256.txt
+?? repo/LaunchAgents/
 ```
 
 ## Next terminal step (runtime/handoff/state/next_step.txt)
 
 ```text
-#!/bin/bash
-set -euo pipefail
-cd "$HOME/tmf_autotrader"
+# NEXT STEP (portable, UNPACK_ROOT-agnostic; PACK_ROOT-aware)
+UNPACK_ROOT="${UNPACK_ROOT:-$(ls -dt /tmp/tmf_autotrader_newwindow_unpack_* 2>/dev/null | head -1)}"
+if [ -z "$UNPACK_ROOT" ] || [ ! -d "$UNPACK_ROOT" ]; then
+  echo "[FATAL] cannot locate UNPACK_ROOT. Expected /tmp/tmf_autotrader_newwindow_unpack_*"
+  echo "Hint: re-run OneShot HardGate to regenerate an unpack, or export UNPACK_ROOT to the correct path."
+  exit 2
+fi
 
-# NEXT (M3 Strategy Base + Paper Live): wire REAL market data -> DB -> MarketMetrics
-# Updated: 2026-02-02 22:35:51
-#
-# Goal:
-#  1) Add Shioaji futures quote subscription for TMF/TX/MTX (bid/ask levels) and persist to events.kind='bidask_fop_v1'
-#     - Ensure payload has: code, bid_price[], ask_price[], bid_volume[], ask_volume[], source_file, ingest_ts, synthetic=False
-#  2) Confirm SystemSafetyEngineV1 staleness guard sees latest NON-synthetic bidask in DB during market hours.
-#  3) Confirm get_market_metrics_from_db returns non-empty market_metrics during market hours (ATR from bars_1m optional).
-#  4) Keep TMF_DEV_ALLOW_STALE_BIDASK only for offline smoke; default remains strict.
+# Pack root is the first directory under UNPACK_ROOT (e.g. tmf_autotrader_windowpack_ultra_YYYYMMDD_HHMMSS)
+PACK_ROOT="${PACK_ROOT:-$(find "$UNPACK_ROOT" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | head -n 1)}"
+if [ -z "$PACK_ROOT" ] || [ ! -d "$PACK_ROOT/repo" ]; then
+  echo "[FATAL] cannot locate PACK_ROOT/repo under UNPACK_ROOT=$UNPACK_ROOT"
+  echo "Hint: set PACK_ROOT to the tmf_autotrader_windowpack_ultra_* dir under UNPACK_ROOT."
+  exit 2
+fi
 
-# Step 1: locate current Shioaji quote recorder / event ingestor for futures (TMF/TX/MTX)
-python3 - <<'PY2'
-from pathlib import Path
-import re
-
-targets = []
-for pat in ["shioaji", "quote", "bidask", "fop", "futures", "stream", "subscribe"]:
-    pass
-
-roots = [Path("src"), Path("scripts")]
-for root in roots:
-    if not root.exists(): 
-        continue
-    for f in root.rglob("*.py"):
-        t = f.read_text(encoding="utf-8", errors="replace")
-        if any(k in t.lower() for k in ["shioaji", "subscribe", "bidask", "quote"]):
-            targets.append(str(f))
-
-print("=== [CANDIDATES] files mentioning shioaji/quote/bidask ===")
-for x in sorted(set(targets)):
-    print(x)
-print("=== [DONE] ===")
-PY2
+cd "$PACK_ROOT/repo" && sed -n "1,220p" runtime/handoff/state/NEW_WINDOW_OPENING_PROMPT_ULTRA_ZH.md
 ```
 
 ## Rules (must follow)

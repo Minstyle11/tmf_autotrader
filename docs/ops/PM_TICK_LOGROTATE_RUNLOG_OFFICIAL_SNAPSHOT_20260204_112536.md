@@ -6,7 +6,7 @@ This snapshot covers:
   - `runtime/logs/launchagent_pm_tick.out.log`
   - `runtime/logs/launchagent_pm_tick.err.log`
   - `runtime/logs/pm_log_rotate_v1.run.log` (run log)
-- `scripts/pm_refresh_board.sh` invokes logrotate hook with pinned env, append-only run log.
+- `scripts/pm_refresh_board_canonical.sh` invokes logrotate hook with pinned env, append-only run log.
 - `[STAT]` line includes `run=` (kept_run) and uses `rotated_count`.
 
 ## Key Behavior (as implemented)
@@ -27,8 +27,7 @@ This snapshot covers:
 
 ## Files
 - scripts/pm_log_rotate_v1.sh
-- scripts/pm_refresh_board.sh
+- scripts/pm_refresh_board_canonical.sh
 - runtime/logs/pm_log_rotate_v1.run.log
 - runtime/logs/_archive/pm_log_rotate_v1.run.log.*
 - runtime/logs/_archive/launchagent_pm_tick.*.log.*
-

@@ -133,10 +133,102 @@ def _safe_to_dict(x):
         return {"repr": repr(x)}
 
 
+
+# ---- DB dual-write (M3: REAL market data -> DB -> MarketMetrics) ----
+# OFFICIAL intent:
+# - Keep raw_events JSONL as truth-source.
+# - Also write selected events into sqlite events(kind='bidask_fop_v1'/'tick_fop_v1') for in-session PaperLive.
+#
+# Controls:
+#   TMF_RECORDER_WRITE_DB=1 (default 1)
+#   TMF_RECORDER_DB_PATH=runtime/data/tmf_autotrader_v1.sqlite3
+#   TMF_RECORDER_DB_COMMIT_EVERY_N=50
+#   TMF_RECORDER_DB_COMMIT_EVERY_SEC=1.0
+#
+# Safety:
+# - Creates minimal 'events' table if missing (IF NOT EXISTS).
+# - Never raises on DB failure; logs session_error to JSONL instead (best-effort).
+def _tmf_db_dual_write_enabled() -> bool:
+    import os
+    return (os.environ.get("TMF_RECORDER_WRITE_DB", "1").strip() == "1")
+
+class _TmfDbDualWriter:
+    def __init__(self):
+        self._con = None
+        self._n = 0
+        self._last_commit_ts = 0.0
+
+    def _ensure(self, db_path: str):
+        import sqlite3
+        if self._con is not None:
+            return
+        self._con = sqlite3.connect(db_path)
+        self._con.execute("PRAGMA journal_mode=WAL;")
+        self._con.execute("""
+            CREATE TABLE IF NOT EXISTS events(
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              ts TEXT NOT NULL,
+              kind TEXT NOT NULL,
+              payload_json TEXT NOT NULL,
+              source_file TEXT,
+              ingest_ts TEXT
+            )
+        """)
+        self._con.commit()
+
+    def write(self, *, ts: str, kind: str, payload: dict):
+        import os, json, time
+        if not _tmf_db_dual_write_enabled():
+            return
+        # Only write market-truth feeds that PaperLive/Safety/MarketMetrics consume.
+        if kind not in ("bidask_fop_v1", "tick_fop_v1"):
+            return
+        db_path = (os.environ.get("TMF_RECORDER_DB_PATH") or "runtime/data/tmf_autotrader_v1.sqlite3").strip()
+        commit_n = int((os.environ.get("TMF_RECORDER_DB_COMMIT_EVERY_N", "50") or "50").strip())
+        commit_sec = float((os.environ.get("TMF_RECORDER_DB_COMMIT_EVERY_SEC", "1.0") or "1.0").strip())
+        self._ensure(db_path)
+
+        source_file = payload.get("source_file")
+        ingest_ts = payload.get("ingest_ts") or ts
+        self._con.execute(
+            "INSERT INTO events(ts, kind, payload_json, source_file, ingest_ts) VALUES (?,?,?,?,?)",
+            (ts, kind, json.dumps(payload, ensure_ascii=False, separators=(",",":")), source_file, ingest_ts),
+        )
+        self._n += 1
+        now = time.time()
+        if self._n >= commit_n or (now - self._last_commit_ts) >= commit_sec:
+            self._con.commit()
+            self._n = 0
+            self._last_commit_ts = now
+
+    def close(self):
+        try:
+            if self._con is not None:
+                self._con.commit()
+                self._con.close()
+        finally:
+            self._con = None
+
+_tmf_db_writer = _TmfDbDualWriter()
+import atexit
+atexit.register(_tmf_db_writer.close)
+
+# ---- /DB dual-write ----
 def _write_event(fp, kind: str, payload: dict) -> None:
-    rec = {"ts": _now_iso(), "kind": kind, "payload": payload}
+    ts = _now_iso()
+    rec = {"ts": ts, "kind": kind, "payload": payload}
     fp.write(json.dumps(rec, ensure_ascii=False, default=_tmf_json_default) + "\n")
     fp.flush()
+    # Best-effort: dual-write to sqlite for PaperLive/Safety/MarketMetrics
+    try:
+        _tmf_db_writer.write(ts=ts, kind=kind, payload=payload)
+    except Exception as e:
+        # Do NOT crash recorder; record error into JSONL
+        try:
+            fp.write(json.dumps({"ts": _now_iso(), "kind": "session_error", "payload": {"error": f"db_dual_write_failed: {type(e).__name__}: {e}"}}) + "\n")
+            fp.flush()
+        except Exception:
+            pass
 
 
 def main() -> int:
@@ -176,7 +268,9 @@ def main() -> int:
         _write_event(fp, "session_start", {"msg": "start", "cwd": str(project_root)})
 
         # callbacks (v1)
-        def _on_bidask_fop_v1(exchange, bidask):
+        def _on_bidask_fop_v1(*args):
+            exchange = args[0] if len(args) > 1 else None
+            bidask = args[-1]
             d = _safe_to_dict(bidask)
             # normalize required truth-source fields (best-effort)
             code = d.get("code") or getattr(bidask, "code", None) or fop_contract_code
@@ -198,7 +292,9 @@ def main() -> int:
             })
             _write_event(fp, "bidask_fop_v1", payload)
 
-        def _on_tick_fop_v1(exchange, tick):
+        def _on_tick_fop_v1(*args):
+            exchange = args[0] if len(args) > 1 else None
+            tick = args[-1]
             d = _safe_to_dict(tick)
             code = d.get("code") or getattr(tick, "code", None) or fop_contract_code
             payload = dict(d)
@@ -222,13 +318,15 @@ def main() -> int:
         try:
             if api_key and secret:
                 try:
-                    api.login(api_key, secret_raw)
+                    # v18/v18.1: unless research-only sandbox, MUST subscribe_trade=True (truth-source)
+                    subscribe_trade = (str(os.environ.get("TMF_RESEARCH_ONLY", "0")).strip() != "1")
+                    api.login(api_key=api_key, secret_key=secret_raw, subscribe_trade=subscribe_trade)
                 except Exception:
-                    api.login(api_key, secret_norm)
+                    api.login(api_key=api_key, secret_key=secret_norm, subscribe_trade=subscribe_trade)
 
                 _write_event(fp, "session_ready", {"msg": "login_ok", "simulation": simulation})
             elif pid and pw:
-                api.login(pid, pw)
+                api.login(person_id=pid, passwd=pw, subscribe_trade=subscribe_trade)
                 _write_event(fp, "session_ready", {"msg": "login_ok_pidpw", "simulation": simulation})
             else:
                 _write_event(fp, "session_ready", {"msg": "login_skipped_missing_env", "simulation": simulation})

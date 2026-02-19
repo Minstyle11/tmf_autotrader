@@ -42,3 +42,24 @@ runtime/**
 # --- auto: ignore local backup/scratch files ---
 *.pre_*
 scripts/*.pre_*
+
+# --- AUTO: ignore quarantined weird filenames (NO-DELETE) ---
+SUSPECT_RENAMED__2_comma_echo
+\[INFO\]\ smoke\ override:\ TMF_HALT_DATES_CSV=\\"\\"\ (ignore\ holidays\ for\ regression)
+\[INFO\]\ smoke\ override:\ TMF_HALT_DATES_CSV=\\\\\ (ignore\ holidays\ for\ regression)
+\[INFO\]\ smoke\ override:\ TMF_REQUIRE_SESSION_OPEN=0\ (ignore\ session\ closed\ for\ regression)
+\\necho
+# --- AUTO: end ---
+
+# --- AUTO: fix ignore for weird root filenames (NO-DELETE) ---
+\[INFO\]\ smoke\ override:\ TMF_HALT_DATES_CSV=""\ (ignore\ holidays\ for\ regression)
+# --- AUTO: end ---
+
+# ignore local LaunchAgents drop folder (repo/LaunchAgents is canonical)
+/LaunchAgents/
+
+# --- AUTO: local temp / editor artifacts ---
+*.tmp
+*.tmp_*
+.editorconfig.tmp_*
+**/.DS_Store

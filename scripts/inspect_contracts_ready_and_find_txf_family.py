@@ -34,7 +34,7 @@ def main():
 
     api = sj.Shioaji()
     print("[INFO] login with contracts_timeout=15000ms ...")
-    api.login(api_key=api_key, secret_key=secret_key, contracts_timeout=15000)
+    api.login(api_key=api_key, secret_key=secret_key, contracts_timeout=15000, subscribe_trade=True)
 
     # Extra safety: wait status; if still not ready, force fetch_contracts
     ready = wait_contracts(api, max_wait=15)
