@@ -76,9 +76,9 @@ def main() -> int:
     now = now_stamp()
     freeze = (os.getenv("GITHUB_ACTIONS","").lower() == "true") or (os.getenv("TMF_BOARD_FREEZE_TS","") == "1")
     if freeze:
-        m_ts = re.search(r"(?m)^- 更新時間：(.+) , txt)
+        m_ts = re.search(r"(?m)^- 更新時間：(.+)$", txt)
         if not m_ts:
-            m_ts = re.search(r"(?m)^- \*\*LAST_BOARD_UPDATE_AT:\*\* (.+) , txt)
+            m_ts = re.search(r"(?m)^- \\*\\*LAST_BOARD_UPDATE_AT:\\*\\* (.+)$", txt)
         if m_ts:
             now = m_ts.group(1).strip()
 
