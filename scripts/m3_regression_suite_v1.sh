@@ -39,4 +39,13 @@ bash scripts/m3_regression_reconcile_os_v1.sh
 say "latency backpressure os"
 bash scripts/m3_regression_latency_backpressure_os_v1.sh
 
+# --- M3-OS-2 CostModel OS regression (must exist) ---
+bash scripts/m3_regression_cost_model_os_v1.sh
+
+# --- M3-OS-3 Stress Battery OS regression (optional if file exists) ---
+if [ -f scripts/m3_regression_stress_battery_os_v1.sh ]; then
+  bash scripts/m3_regression_stress_battery_os_v1.sh
+fi
+
+
 say "M3 REGRESSION SUITE v1 PASS"

@@ -97,6 +97,7 @@ def _apply_vol_confidence(meta: dict, mm: dict) -> dict:
 
     meta = dict(meta or {})
     meta["vol_regime"] = regime
+    meta["regime_dpb_risk"] = (regime == "EXTREME")  # B3 DPB/DPBM risk regime (fail-fast via taifex_preflight)
 
     strat = meta.get("strat") if isinstance(meta.get("strat"), dict) else {}
     raw = strat.get("confidence")

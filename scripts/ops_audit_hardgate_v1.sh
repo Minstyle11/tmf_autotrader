@@ -145,6 +145,45 @@ PY
     echo "- OK"
   fi
   echo
+
+  echo "## 9) M3 OS chaos drill v1 (latency/backpressure)"
+  echo '```'
+  out=""
+  rc=0
+  if out="$(bash scripts/ops_chaos_drill_v1.sh 2>&1)"; then
+    rc=0
+  else
+    rc=$?
+  fi
+  echo "$out"
+  echo '```'
+  echo "### Chaos drill artifacts sha256"
+  echo '```'
+  shasum -a 256 runtime/logs/chaos_drill_v1.latest.json || true
+  shasum -a 256 runtime/logs/chaos_drill_v1.latest.log  || true
+  echo '```'
+  echo
+
+
+  echo "## 10) M3 OS runbook drill v1 (auto-remediation)"
+  out="$(DRY_RUN=1 bash scripts/ops_runbook_drill_v1.sh 2>&1 || true)"
+  echo '```'
+  echo "$out"
+  echo '```'
+  echo "### Runbook drill artifacts sha256"
+  echo '```'
+  shasum -a 256 runtime/logs/runbook_drill_v1.latest.json || true
+  shasum -a 256 runtime/logs/runbook_drill_v1.latest.log  || true
+  echo '```'
+  echo
+  if [ "${rc:-0}" -ne 0 ]; then
+    echo "FATAL: ops_chaos_drill_v1 failed rc=$rc"
+    exit 11
+  else
+    echo "- OK"
+  fi
+  echo
+
   echo "## RESULT"
   echo "- PASS"
 } > "$OUT"

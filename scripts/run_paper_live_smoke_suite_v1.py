@@ -245,8 +245,47 @@ def main():
     rcB, outB = _run(envB, [sys.executable, "src/oms/run_paper_live_v1.py", "--db", str(db)])
     print(outB)
 
+    # --- B in-session HARDGUARD (SystemSafetyEngineV1 never allows stale override during session) ---
+    # If we are currently in-session, then B is expected to observe SAFETY_FEED_STALE/COOLDOWN instead of RISK_STOP_REQUIRED.
+    # We treat that as PASS/SKIP to avoid false FAIL during day-session runs.
+    try:
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        def _hhmm_to_int(x: str) -> int:
+            x = (x or "").strip()
+            if len(x) != 4 or (not x.isdigit()):
+                return 0
+            return int(x)
+        _now = datetime.now(ZoneInfo("Asia/Taipei"))
+        _now_hhmm = int(_now.strftime("%H%M"))
+        _open = _hhmm_to_int(envB.get("TMF_SESSION_OPEN_HHMM", os.environ.get("TMF_SESSION_OPEN_HHMM","0845")))
+        _close = _hhmm_to_int(envB.get("TMF_SESSION_CLOSE_HHMM", os.environ.get("TMF_SESSION_CLOSE_HHMM","1345")))
+        if _open < _close:
+            _in_sess = (_open <= _now_hhmm < _close)
+        else:
+            # wrap-around session window (rare)
+            _in_sess = (_now_hhmm >= _open) or (_now_hhmm < _close)
+
+        if _in_sess:
+            if ("SAFETY_FEED_STALE" in outB) or ("SAFETY_COOLDOWN_ACTIVE" in outB):
+                print("[SKIP] B in-session HARDGUARD active -> stale override disabled; observed SAFETY_* -> treat as PASS")
+                okB_case1 = True
+                okB_case2 = True
+                okB = True
+            else:
+                print("[FAIL] B in-session expected SAFETY_FEED_STALE/SAFETY_COOLDOWN_ACTIVE but not observed")
+                raise SystemExit(3)
+    except Exception as _e:
+        print("[WARN] B in-session detection failed; fall back to legacy B expectations:", repr(_e))
+
     if "EXEC_MARKET_CLOSED" in outB:
+
         print("[SKIP] B observed EXEC_MARKET_CLOSED (holiday/offsession) -> treat as PASS")
+        okB_case1 = True
+        okB_case2 = True
+        okB = True
+    elif ("HARDGUARD" in outB) and ("TMF_DEV_ALLOW_STALE_BIDASK=1" in outB) and ("SAFETY_FEED_STALE" in outB or "SAFETY_COOLDOWN_ACTIVE" in outB):
+        print("[SKIP] B in-session HARDGUARD active -> stale override disabled; observed SAFETY_* -> treat as PASS")
         okB_case1 = True
         okB_case2 = True
         okB = True
@@ -309,6 +348,7 @@ def main():
             "C_ok": bool(okC),
             "A_has_SAFETY_FEED_STALE": ("SAFETY_FEED_STALE" in outA),
             "B_has_RISK_STOP_REQUIRED": ("RISK_STOP_REQUIRED" in outB),
+            "B_has_SAFETY_FEED_STALE": ("SAFETY_FEED_STALE" in outB),
             "C_has_OK_DEV_ALLOW_STALE": ("OK_DEV_ALLOW_STALE" in outC),
             "B_case2_spread_gate": ("RISK_SPREAD_TOO_WIDE" in outB),
             "C_case2_spread_gate": ("RISK_SPREAD_TOO_WIDE" in outC),

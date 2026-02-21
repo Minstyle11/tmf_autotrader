@@ -217,3 +217,10 @@ def _migrate_orders_audit_cols_v1(con) -> None:
         except Exception:
             # If concurrent/duplicate, ignore (OperationalError duplicate column, etc.)
             pass
+# --- v18 compat alias ---
+# Some older scripts/importers expect ensure_sqlite_schema_v1().
+# Keep a thin alias to init_db() to avoid changing callsites.
+def ensure_sqlite_schema_v1(*, db_path: str) -> None:
+    # Accept str path; normalize to Path for connect()/init_db().
+    p = Path(db_path)
+    init_db(p)

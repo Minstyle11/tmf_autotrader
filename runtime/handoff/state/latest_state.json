@@ -1,10 +1,10 @@
 {
-  "ts": "2026-02-20T01:52:00",
-  "board_total_pct": "28.0",
+  "ts": "2026-02-21T10:37:14",
+  "board_total_pct": "30.0",
   "launchd": {
     "pm_tick": "0",
     "autorestart": "1",
-    "backup": "2",
+    "backup": "11",
     "handoff_tick": "10"
   },
   "last_changelog_line": "- [2026-02-10 23:31:08] M3: LIVE snapshot OK (non-synth/non-ops_seed bidask+tick; SystemSafetyEngineV1 OK; market_metrics non-empty) + PROJECT_BOARD autoprog reconciled (25/107=23.4%)",

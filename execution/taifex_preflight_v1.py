@@ -45,8 +45,25 @@ def _normalize_session_hint(raw: str) -> str:
         return "AFTER_HOURS"
     return v
 
+def _normalize_order_type(raw: str) -> str:
+    """Normalize order_type / price_type values to canonical TAIFEX order types.
+    Accepts:
+      - MARKET / MKT -> MARKET
+      - LIMIT  / LMT -> LIMIT
+      - MWP    / MKP -> MWP   (Shioaji MKP = Market with Protection / 範圍市價)
+    Unknown values are returned uppercased as-is (will be rejected by _max_qty).
+    """
+    v = str(raw or "").strip().upper()
+    if v in {"MARKET", "MKT"}:
+        return "MARKET"
+    if v in {"LIMIT", "LMT"}:
+        return "LIMIT"
+    if v in {"MWP", "MKP"}:
+        return "MWP"
+    return v
+
 def _max_qty(order_type: str, session: str) -> int:
-    ot = (order_type or "").strip().upper()
+    ot = _normalize_order_type(order_type)
     ss = (session or "").strip().upper()
 
     if ot == "MARKET":
@@ -122,12 +139,13 @@ def check_taifex_preflight(
             False,
             "EXEC_TAIFEX_REGIME_DPB_RISK",
             "regime indicates DPB/DPBM risk; block order to avoid exchange-protection rejects",
-            {"order_type": order_type, "session": session, "regime_dpb_risk": True},
+            {"order_type": _normalize_order_type(order_type),
+            "order_type_raw": order_type, "session": session, "regime_dpb_risk": True},
         )
 
     # B2) MWP must have same-side best price to derive exchange-defined converted LIMIT.
     # If missing, TAIFEX may reject the order (no same-side best price as conversion anchor).
-    if (order_type or "").strip().upper() == "MWP":
+    if _normalize_order_type(order_type) == "MWP":
         bsl = (meta or {}).get("best_same_side_limit")
         try:
             bsl_ok = (bsl is not None) and (float(bsl) > 0)
@@ -138,7 +156,8 @@ def check_taifex_preflight(
                 False,
                 "EXEC_TAIFEX_MWP_NO_SAMESIDE_LIMIT",
                 "MWP requires best_same_side_limit (same-side best price) to derive converted limit",
-                {"order_type": order_type, "session": session, "best_same_side_limit": bsl},
+                {"order_type": _normalize_order_type(order_type),
+            "order_type_raw": order_type, "session": session, "best_same_side_limit": bsl},
             )
 
     max_per_order = _max_qty(order_type, session)
@@ -147,13 +166,15 @@ def check_taifex_preflight(
             False,
             "ORDER_TYPE_UNSUPPORTED",
             "unsupported order_type for TAIFEX preflight",
-            {"order_type": order_type, "session": session},
+            {"order_type": _normalize_order_type(order_type),
+            "order_type_raw": order_type, "session": session},
         )
 
     if qty_int <= max_per_order:
         return PreflightVerdict(True, "OK", "within TAIFEX order-size limits", {
             "code": code,
-            "order_type": order_type,
+            "order_type": _normalize_order_type(order_type),
+            "order_type_raw": order_type,
             "session": session,
             "qty": qty_int,
             "max_per_order": max_per_order,
@@ -175,7 +196,8 @@ def check_taifex_preflight(
         "qty exceeds TAIFEX per-order maximum",
         {
             "code": code,
-            "order_type": order_type,
+            "order_type": _normalize_order_type(order_type),
+            "order_type_raw": order_type,
             "session": session,
             "qty": qty_int,
             "max_per_order": max_per_order,

@@ -330,3 +330,6 @@ class PaperOMS:
             )
             self.open_trade[sym] = t
             self._ins_trade(t)
+
+# --- backward compatibility alias (do not remove; old demos/imports rely on it) ---
+PaperOMSV1 = PaperOMS  # backward-compat alias (v18.x)

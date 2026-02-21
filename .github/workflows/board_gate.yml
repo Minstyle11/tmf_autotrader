@@ -1,0 +1,31 @@
+name: PROJECT_BOARD Gate
+
+on:
+  pull_request:
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  board-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Board HardGate (fail-fast)
+        run: python3 scripts/board_ultra_hardgate_v1.py
+
+      - name: Refresh + Verify (may modify board)
+        run: bash scripts/pm_refresh_board_and_verify.sh
+
+      - name: Ensure no uncommitted changes after refresh
+        run: |
+          if ! git diff --exit-code; then
+            echo "::error::PROJECT_BOARD drift detected. Run: bash scripts/pm_refresh_board_and_verify.sh locally, then commit the resulting changes."
+            git --no-pager diff
+            exit 2
+          fi

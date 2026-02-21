@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
-# Re-check at push time (defense-in-depth)
-pre-commit run --hook-stage pre-push -a
+if [ -f ".venv/bin/activate" ]; then . ".venv/bin/activate"; fi
+exec pre-commit run --hook-stage pre-push

@@ -2,8 +2,7 @@
 set -euo pipefail
 # [AUTO] generate NEW_WINDOW_OPENING_PROMPT (ULTRA) before packing
 # [PATCH] moved below after ZIP build to avoid latest_zip mismatch
-# python3 scripts/gen_new_window_opening_prompt_ultra_zh.py || true
-
+# 
 
 PROJ="$HOME/tmf_autotrader"
 STAMP="$(date +%Y%m%d_%H%M%S)"
@@ -22,6 +21,11 @@ fi
 
 PACK_ROOT="$WORK_BASE/${PACK_NAME}"
 LATEST_DIR="$PROJ/runtime/handoff/latest"
+
+# [AUTO] precompute target zip path for opening prompt (self-referential)
+ZIP="$LATEST_DIR/TMF_AutoTrader_WindowPack_ULTRA_${STAMP}.zip"
+export TMF_LATEST_ZIP_OVERRIDE="$ZIP"
+python3 scripts/gen_new_window_opening_prompt_ultra_zh.py || true
 
 mkdir -p "$PACK_ROOT/handoff" "$PACK_ROOT/state" "$PACK_ROOT/repo" "$LATEST_DIR"
 
@@ -235,6 +239,43 @@ _require_env_rebuild_report_in_latest_zip() {
 }
 
 _require_env_rebuild_report_in_latest_zip
+
+
+
+
+
+# [HARD-REQ] chaos drill artifacts must be included in ULTRA windowpack (OS-3 evidence chain)
+_require_chaos_drill_artifacts_in_latest_zip() {
+  local z
+  z="$(ls -t "$REPO_ROOT/runtime/handoff/latest"/TMF_AutoTrader_WindowPack_ULTRA_*.zip 2>/dev/null | head -n 1 || true)"
+  if [ -z "$z" ]; then
+    echo "[FAIL] cannot locate latest ULTRA zip under runtime/handoff/latest" >&2
+    return 41
+  fi
+
+  unzip -l "$z" | grep -E "repo/runtime/logs/chaos_drill_v1\.latest\.json$" >/dev/null || {
+    echo "[FAIL] latest ULTRA zip missing repo/runtime/logs/chaos_drill_v1.latest.json. zip=$z" >&2
+    return 42
+  }
+  unzip -l "$z" | grep -E "repo/runtime/logs/chaos_drill_v1\.latest\.log$" >/dev/null || {
+    echo "[FAIL] latest ULTRA zip missing repo/runtime/logs/chaos_drill_v1.latest.log. zip=$z" >&2
+    return 43
+  }
+
+  echo "[OK] hard-req chaos drill artifacts present in zip=$z"
+}
+
+_require_runbook_drill_artifacts_in_latest_zip() {
+  local zip="$1"
+  unzip -l "$zip" | grep -Fq "repo/runtime/logs/runbook_drill_v1.latest.json" || {
+    echo "[FATAL] missing hard-req runbook drill json in zip=$zip"; exit 3; }
+  unzip -l "$zip" | grep -Fq "repo/runtime/logs/runbook_drill_v1.latest.log" || {
+    echo "[FATAL] missing hard-req runbook drill log in zip=$zip"; exit 3; }
+  echo "[OK] hard-req runbook drill artifacts present in zip=$zip"
+}
+
+_require_chaos_drill_artifacts_in_latest_zip
+
 
 # [HARD-REQ] OneShot HardGate SOP must be included in ULTRA windowpack (for zero-thinking new-window acceptance)
 _require_oneshot_hardgate_sop_in_latest_zip() {

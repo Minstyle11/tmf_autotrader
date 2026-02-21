@@ -18,7 +18,7 @@ qty    = 2
 
 # contract value
 v = cm.calc_contract_value_ntd(price=price, symbol=symbol, qty=qty)
-assert v == 400000.0, f"contract_value mismatch: {v}"
+assert v == 400000.0, f"contract_value mismatch: {v}"  # total notional (price*multiplier*qty)
 
 # expected round-trip cost (uses defaults inside CostModelV1)
 # per side fee = 4.8 + 3.2 + 0.0 = 8.0

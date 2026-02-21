@@ -94,12 +94,10 @@ def main():
     board = _find_board()
     board_excerpt = _read(board, limit=2600) if board else "(missing PROJECT_BOARD)"
 
-    # Latest pack
+    # Latest pack (DO NOT hardcode a specific ZIP; always resolve dynamically in shell)
     z = _latest_windowpack_zip()
-    z_rel = str(z.relative_to(REPO)) if z else "(missing latest windowpack zip)"
-    z_sha_sidecar = ""
-    if z and (z.with_suffix(z.suffix + ".sha256.txt")).exists():
-        z_sha_sidecar = _read(z.with_suffix(z.suffix + ".sha256.txt")).strip()
+    z_rel = "runtime/handoff/latest/TMF_AutoTrader_WindowPack_ULTRA_*.zip"  # pattern; resolve newest via ls -t
+    z_sha_sidecar = ""  # intentionally empty to avoid self-referential zip-hash embedding
 
     # State docs
     audit_latest = REPO / "runtime/handoff/state/audit_report_latest.md"
@@ -119,8 +117,10 @@ sha256sum docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md | tee /tmp/v18
 cat docs/bibles/TMF_AutoTrader_BIBLE_OFFICIAL_LOCKED_v18.md.sha256.txt
 
 # 2) latest ULTRA windowpack sha256 verify (if you are using zip handoff)
-sha256sum {z_rel} | tee /tmp/latest_pack.sha256
-cat {z_rel}.sha256.txt
+LATEST_ZIP="$(ls -t runtime/handoff/latest/TMF_AutoTrader_WindowPack_ULTRA_*.zip 2>/dev/null | head -1)"
+echo "[INFO] latest_zip=$LATEST_ZIP"
+sha256sum "$LATEST_ZIP" | tee /tmp/latest_pack.sha256
+cat "$LATEST_ZIP".sha256.txt
 
 # 3) Read audit + next_step (then execute next_step as a bash script if it is executable-style)
 sed -n '1,200p' runtime/handoff/state/audit_report_latest.md
@@ -146,7 +146,7 @@ sed -n '1,200p' runtime/handoff/state/next_step.txt
     md.append(hard_gate_cmds)
     md.append("")
     md.append("## 2) 最新 ULTRA WindowPack（接手用）")
-    md.append(f"- latest_zip: `{z_rel}`")
+    md.append(f"- latest_zip_pattern: `{z_rel}` (請用 `ls -t` 取最新一包)")
     if z_sha_sidecar:
         md.append("```")
         md.append(z_sha_sidecar)

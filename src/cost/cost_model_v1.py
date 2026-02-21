@@ -52,24 +52,36 @@ DEFAULT_MULTIPLIER_BY_SYMBOL: Dict[str, float] = {
 
 
 def calc_contract_value_ntd(*, price: float, symbol: str, qty: int = 1, multiplier_override: Optional[float] = None) -> float:
-    """Return per-contract notional in NTD = price * multiplier.
+    """Return contract notional in NTD = price * multiplier * qty.
 
-    NOTE: Some broker contract objects may report multiplier as 0/empty; keep a canonical mapping here.
+    - qty must be positive
+    - unknown symbol => KeyError (regression expects this)
+    - multiplier_override (if provided) overrides symbol mapping
     """
-    # compat: symbol aliases + explicit multiplier override
+    # compat: symbol aliases
     if symbol == "TX":
         symbol = "TXF"
     elif symbol == "MTX":
         symbol = "MXF"
-    if multiplier_override is not None:
-        return float(price) * float(multiplier_override)
 
     if price <= 0:
         raise ValueError("price must be positive")
-    m = float(multiplier_override) if multiplier_override is not None else float(DEFAULT_MULTIPLIER_BY_SYMBOL.get(symbol, 0.0))
+    if qty <= 0:
+        raise ValueError("qty must be positive")
+
+    if multiplier_override is not None:
+        m = float(multiplier_override)
+        if m <= 0:
+            raise ValueError("multiplier_override must be positive")
+        return float(price) * m * int(qty)
+
+    if symbol not in DEFAULT_MULTIPLIER_BY_SYMBOL:
+        raise KeyError(f"unknown symbol={symbol}")
+
+    m = float(DEFAULT_MULTIPLIER_BY_SYMBOL.get(symbol, 0.0))
     if m <= 0:
         raise ValueError(f"unknown multiplier for symbol={symbol}; pass multiplier_override")
-    return float(price) * m
+    return float(price) * m * int(qty)
 
 def calc_round_trip_cost_ntd(
     *,
@@ -151,10 +163,92 @@ class CostModelConfigV1:
 
 class CostModelV1:
 
-    def calc_contract_value_ntd(self, *, price: float, symbol: str, qty: int = 1) -> float:
-        # regression compatibility: return TOTAL notional including qty
-        per = calc_contract_value_ntd(price=price, symbol=symbol)
-        return float(per) * float(qty)
+    def calc_contract_value_ntd(self, *, price: float, symbol: str, qty: int):
+        """Return TOTAL notional in NTD = price * multiplier * qty.
+
+        - qty must be positive (ValueError)
+        - unknown symbol => KeyError
+        - rolling codes like TMFB6 map to TMF (base symbol)
+        """
+        if price <= 0:
+            raise ValueError("price must be positive")
+        if qty is None or int(qty) <= 0:
+            raise ValueError("qty must be positive")
+
+        sym = str(symbol or "")
+        base = sym
+        for b in ("TMF","TXF","MXF"):
+            if sym.startswith(b):
+                base = b
+                break
+
+        mult_map = globals().get("MULTIPLIER_BY_SYMBOL_V1") or globals().get("DEFAULT_MULTIPLIER_BY_SYMBOL") or {}
+        if base not in mult_map:
+            raise KeyError(base)
+        m = float(mult_map[base])
+        if m <= 0:
+            raise KeyError(base)
+
+        return float(price) * m * float(int(qty))
+
+
+    def calc_round_trip_cost_ntd(self, *, price: float, symbol: str, qty: int):
+        """Return round-trip total cost in NTD (fee + tax) for TOTAL qty.
+
+        Returns:
+          {
+            "total_cost_ntd": ...,
+            "fee_ntd": ...,
+            "tax_ntd": ...,
+            "details": {"qty":..., "multiplier":..., "tax_rate":...}
+          }
+        """
+        # total notional (includes qty)
+        contract_value_ntd = self.calc_contract_value_ntd(price=price, symbol=symbol, qty=qty)
+
+        sym = str(symbol or "")
+        base = sym
+        for b in ("TMF","TXF","MXF"):
+            if sym.startswith(b):
+                base = b
+                break
+
+        # tax rate (per side)
+        tax_rate = float(globals().get("TAX_RATE_V1") or globals().get("TAX_RATE_EQUITY_FUTURES") or 0.00002)
+
+        # multiplier for details
+        mult_map = globals().get("MULTIPLIER_BY_SYMBOL_V1") or globals().get("DEFAULT_MULTIPLIER_BY_SYMBOL") or {}
+        if base not in mult_map:
+            raise KeyError(base)
+        multiplier = float(mult_map[base])
+
+        # fee per side per contract
+        fee_map = globals().get("DEFAULT_FEE_BY_SYMBOL_V1") or globals().get("DEFAULT_FEE_BY_SYMBOL") or globals().get("FEE_PER_SIDE_BY_SYMBOL") or {}
+        spec = fee_map.get(base, fee_map.get(sym, 0.0))
+
+        fee_per_side = 0.0
+        if hasattr(spec, "per_side_total"):
+            fee_per_side = float(getattr(spec, "per_side_total"))
+        elif isinstance(spec, dict) and "per_side_total" in spec:
+            fee_per_side = float(spec["per_side_total"])
+        else:
+            fee_per_side = float(spec or 0.0)
+
+        # round-trip
+        fee_ntd = fee_per_side * 2.0 * float(int(qty))
+        tax_ntd = float(contract_value_ntd) * tax_rate * 2.0
+        total = float(fee_ntd) + float(tax_ntd)
+
+        return {
+            "total_cost_ntd": float(total),
+            "fee_ntd": float(fee_ntd),
+            "tax_ntd": float(tax_ntd),
+            "details": {
+                "qty": int(qty),
+                "multiplier": float(multiplier),
+                "tax_rate": float(tax_rate),
+            },
+        }
 
     def __init__(
         self,
@@ -267,9 +361,65 @@ class CostModelV1:
         self.tax_rate = TAX_RATE_V1 if tax_rate is None else tax_rate
 
     def calc_contract_value_ntd(self, *, price: float, symbol: str, qty: int):
+        if int(qty) <= 0:
+            raise ValueError("qty must be positive")
         return _call_accepting(calc_contract_value_ntd, price=price, symbol=symbol, qty=qty)  # type: ignore[name-defined]
-
     def calc_round_trip_cost_ntd(self, *, price: float, symbol: str, qty: int):
-        return _call_accepting(calc_round_trip_cost_ntd, price=price, symbol=symbol, qty=qty)  # type: ignore[name-defined]
+        """Return round-trip total cost in NTD for TOTAL qty.
 
-# === COMPAT_COSTMODEL_V1_END ===
+        Must match scripts/m3_regression_cost_model_os_v1.sh expectations:
+          total_cost_ntd = fee_ntd + tax_ntd
+          fee_ntd = (fee_per_side_ntd_per_contract * qty) * 2
+          tax_ntd = (price*multiplier*qty * tax_rate) * 2
+        """
+        q = int(qty)
+        if q <= 0:
+            raise ValueError("qty must be positive")
+        px = float(price)
+        if px <= 0:
+            raise ValueError("price must be positive")
+
+        # base symbol: allow rolling codes like TMFB6 -> TMF
+        base = str(symbol or "")
+        for b in ("TMF", "TXF", "MXF"):
+            if base.startswith(b):
+                base = b
+                break
+
+        # multiplier & fee map are held on self (per __init__ of compat class)
+        m = float(self.multiplier_by_symbol.get(base, 0.0))
+        if m <= 0:
+            raise KeyError(base)
+
+        tax_rate = float(getattr(self, "tax_rate", 0.0))
+        contract_value_total = px * m * float(q)
+
+        fee_obj = self.fee_by_symbol.get(base, 0.0)
+
+        # fee_obj may be:
+        # - number (float/int)
+        # - FeeSpec-like object with per_side_total or (exchange_fee/clearing_fee/broker_commission)
+        # - dict-like {exchange_fee, clearing_fee, broker_commission}
+        if hasattr(fee_obj, "per_side_total"):
+            fee_per_side = float(getattr(fee_obj, "per_side_total"))
+        elif hasattr(fee_obj, "exchange_fee") or hasattr(fee_obj, "clearing_fee") or hasattr(fee_obj, "broker_commission"):
+            fee_per_side = float(getattr(fee_obj, "exchange_fee", 0.0)) + float(getattr(fee_obj, "clearing_fee", 0.0)) + float(getattr(fee_obj, "broker_commission", 0.0))
+        elif isinstance(fee_obj, dict):
+            fee_per_side = float(fee_obj.get("exchange_fee", 0.0)) + float(fee_obj.get("clearing_fee", 0.0)) + float(fee_obj.get("broker_commission", 0.0))
+        else:
+            fee_per_side = float(fee_obj)
+        fee_ntd = fee_per_side * float(q) * 2.0
+        tax_ntd = contract_value_total * tax_rate * 2.0
+        total = fee_ntd + tax_ntd
+
+        return {
+            "total_cost_ntd": float(total),
+            "fee_ntd": float(fee_ntd),
+            "tax_ntd": float(tax_ntd),
+            "details": {
+                "qty": q,
+                "multiplier": m,
+                "tax_rate": tax_rate,
+            },
+        }
+

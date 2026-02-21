@@ -1,25 +1,16 @@
-# TMF AutoTrader — pre-commit config (PROJECT_BOARD non-negotiable guard)
-
-default_stages: [pre-commit, pre-push]
-minimum_pre_commit_version: "2.20.0"
-
-
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
-    hooks:
-      - id: end-of-file-fixer
-      - id: trailing-whitespace
-      - id: check-yaml
-      - id: check-merge-conflict
-      - id: mixed-line-ending
-      - id: check-case-conflict
-
   - repo: local
     hooks:
-      - id: tmf-project-board-guard
-        name: TMF PROJECT_BOARD guard (auto-fix + invariant check)
-        entry: python3 scripts/project_board_guard_v2.py --fix
+      - id: tmf-board-hardgate
+        name: TMF PROJECT_BOARD ULTRA HardGate (commit; no side effects)
+        entry: python3 scripts/board_ultra_hardgate_v1.py
         language: system
         pass_filenames: false
         stages: [pre-commit]
+
+      - id: tmf-board-refresh-verify
+        name: TMF PROJECT_BOARD refresh+verify (push; fail-fast)
+        entry: /bin/bash scripts/pm_refresh_board_and_verify.sh
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

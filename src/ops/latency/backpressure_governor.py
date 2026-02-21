@@ -13,8 +13,10 @@ class BackpressureConfigV1:
     """
     cooldown_seconds: int = 30
     kill_on_extreme: int = 1
-
-
+    # thresholds (aligned with LatencyBudgetV1 defaults)
+    max_feed_age_ms: int = 1500
+    max_broker_rtt_ms: int = 1200
+    max_oms_queue_depth: int = 50
 @dataclass(frozen=True)
 class BackpressureDecisionV1:
     ok: bool
@@ -48,8 +50,12 @@ def decide(metrics: Dict[str, Any], cfg: BackpressureConfigV1) -> BackpressureDe
             reason="extreme feed staleness -> kill requested", details=details
         )
 
-    # mild degradation condition (MVP): any nonzero metric -> cooldown
-    if cfg.cooldown_seconds > 0 and (feed_age_ms > 0 or broker_rtt_ms > 0 or oms_q > 0):
+    # mild degradation condition (MVP): exceeds thresholds -> cooldown
+    if cfg.cooldown_seconds > 0 and (
+        feed_age_ms >= int(getattr(cfg, 'max_feed_age_ms', 1500))
+        or broker_rtt_ms >= int(getattr(cfg, 'max_broker_rtt_ms', 1200))
+        or oms_q >= int(getattr(cfg, 'max_oms_queue_depth', 50))
+    ):
         return BackpressureDecisionV1(
             ok=False, action="COOLDOWN", code="BP_COOLDOWN",
             reason="mild degradation -> cooldown", details=details

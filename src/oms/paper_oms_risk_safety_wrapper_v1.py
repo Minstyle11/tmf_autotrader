@@ -6,11 +6,12 @@ from typing import Any, Dict, Optional, Union
 from src.oms.paper_oms_v1 import PaperOMS
 from src.risk.risk_engine_v1 import RiskEngineV1
 from src.safety.system_safety_v1 import SystemSafetyEngineV1
-from execution.taifex_preflight_v1 import check_taifex_preflight
+from execution.order_guard import guard_order_v1
 from execution.tw_market_calendar_v1 import market_open_verdict
 
 from execution.reject_taxonomy import load_policy, decision_from_verdict
 from src.execution.order_result_types import is_rejected_order
+from src.data.store_sqlite_v1 import init_db as init_orders_db
 
 
 
@@ -74,6 +75,12 @@ class PaperOMSRiskSafetyWrapperV1:
         self.risk = risk
         self.safety = safety
         self.db_path = str(db_path)
+        # v18 schema safety: ensure orders table exists even for fresh temp smoke DB
+        try:
+            init_orders_db(Path(self.db_path))
+        except Exception:
+            # schema init must never break execution path
+            pass
         self._reject_policy = None  # lazy-loaded
 
 
@@ -266,7 +273,7 @@ class PaperOMSRiskSafetyWrapperV1:
 
         # 1.5) TAIFEX preflight hard constraints (v18.1-B)
 
-        pv = check_taifex_preflight(symbol=symbol, side=side, qty=float(qty), order_type=order_type, price=price, meta=meta)
+        pv = guard_order_v1(symbol=symbol, side=side, qty=float(qty), order_type=order_type, price=price, meta=meta)
 
         # v18 audit: always persist preflight verdict into meta once SAFETY passed.
         # This ensures Risk REJECTs still carry preflight_verdict for post-mortem.
@@ -298,6 +305,17 @@ class PaperOMSRiskSafetyWrapperV1:
                     lim = 5.0 if sess in {"NIGHT","AFTER_HOURS","AH"} else 10.0
 
 
+                # v18: effective split limit must satisfy BOTH EXEC(TAIFEX) and RISK(max_qty_per_order)
+                try:
+                    _cfg = getattr(self.risk, "cfg", None)
+                    _risk_lim = getattr(_cfg, "max_qty_per_order", None)
+                    if _risk_lim is not None:
+                        _risk_lim = float(_risk_lim)
+                        if _risk_lim > 0 and _risk_lim < lim:
+                            lim = _risk_lim
+                except Exception:
+                    pass
+
                 parent_id = f"SPLIT_{self._now()}"
                 results = []
                 remaining = float(qty)
@@ -327,7 +345,25 @@ class PaperOMSRiskSafetyWrapperV1:
                                 mx = 0.0
                             if mx > 0 and mx < lim:
                                 lim = mx  # tighten split size
+                                # re-chunk existing steps to respect tightened lim
+                                try:
+                                    _new_steps = []
+                                    for _s in steps:
+                                        _s = float(_s)
+                                        if _s <= float(lim) + 1e-9:
+                                            _new_steps.append(_s)
+                                        else:
+                                            _n_full = int(_s // float(lim))
+                                            _rem = _s - (_n_full * float(lim))
+                                            _new_steps.extend([float(lim)] * _n_full)
+                                            if _rem > 1e-9:
+                                                _new_steps.append(_rem)
+                                    steps = _new_steps
+                                except Exception:
+                                    # fail-safe: keep original steps if anything goes wrong
+                                    pass
                                 # drop this failed attempt record? keep for audit; but do not progress
+                                results.pop()  # drop failed adaptive attempt record
                                 continue
                         # other rejections -> stop
                         return {
@@ -365,7 +401,35 @@ class PaperOMSRiskSafetyWrapperV1:
                             meta_parent.setdefault("split_parent_id", parent_id)
                             meta_parent.setdefault("split_limit", float(lim))
                             meta_parent.setdefault("split_requested_qty", float(qty))
-                            meta_parent.setdefault("split_children", results)
+                            # --- v18 audit: make split_children JSON-safe (Order objects are not serializable) ---
+                            children_safe = []
+                            for ch in results:
+                                if isinstance(ch, dict):
+                                    children_safe.append(ch)
+                                else:
+                                    # likely Order dataclass-like object
+                                    try:
+                                        children_safe.append({
+                                            "ok": True,
+                                            "status": getattr(ch, "status", None),
+                                            "broker_order_id": getattr(ch, "order_id", None),
+                                            "order": {
+                                                "order_id": getattr(ch, "order_id", None),
+                                                "ts": getattr(ch, "ts", None),
+                                                "symbol": getattr(ch, "symbol", None),
+                                                "side": getattr(ch, "side", None),
+                                                "qty": getattr(ch, "qty", None),
+                                                "order_type": getattr(ch, "order_type", None),
+                                                "price": getattr(ch, "price", None),
+                                                "status": getattr(ch, "status", None),
+                                                "filled_qty": getattr(ch, "filled_qty", None),
+                                                "meta": getattr(ch, "meta", None),
+                                            },
+                                        })
+                                    except Exception:
+                                        children_safe.append({"ok": True, "status": "ORDER", "repr": repr(ch)})
+                            meta_parent.setdefault("split_children", children_safe)
+
                             con.execute(
                                 "INSERT INTO orders(ts, broker_order_id, symbol, side, qty, price, order_type, status, verdict, decision, action, meta_json) "
                                 "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",

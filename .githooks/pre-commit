@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
-# Run default stage (pre-commit). Auto-fix is allowed.
-pre-commit run --hook-stage pre-commit
+
+# Prefer project venv if present
+if [ -f ".venv/bin/activate" ]; then
+  # shellcheck disable=SC1091
+  . ".venv/bin/activate"
+fi
+
+# Run configured hooks on staged files for pre-commit stage
+exec pre-commit run --hook-stage pre-commit
