@@ -2,6 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 from datetime import datetime
 import re
+import os
 import sys
 
 BOARD = Path("docs/board/PROJECT_BOARD.md")
@@ -73,6 +74,13 @@ def main() -> int:
     # Count from TASK truth in the WHOLE original doc (tasks live in body)
     total, done, doing, blocked, todo, pct = count_tasks(txt)
     now = now_stamp()
+    freeze = (os.getenv("GITHUB_ACTIONS","").lower() == "true") or (os.getenv("TMF_BOARD_FREEZE_TS","") == "1")
+    if freeze:
+        m_ts = re.search(r"(?m)^- 更新時間：(.+) , txt)
+        if not m_ts:
+            m_ts = re.search(r"(?m)^- \*\*LAST_BOARD_UPDATE_AT:\*\* (.+) , txt)
+        if m_ts:
+            now = m_ts.group(1).strip()
 
     # Rebuild header deterministically
     header = []
